@@ -1,23 +1,33 @@
-<platformcontrols:VideoOSWindow  xmlns:platformcontrols="clr-namespace:VideoOS.Platform.UI.Controls;assembly=VideoOS.Platform" x:Class="AlarmVideo.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:platformclient="clr-namespace:VideoOS.Platform.Client;assembly=VideoOS.Platform" Title="Alarm System" Height="597" Width="1446">
-    <Grid Height="704" VerticalAlignment="Top">
+<platformcontrols:VideoOSWindow  xmlns:platformcontrols="clr-namespace:VideoOS.Platform.UI.Controls;assembly=VideoOS.Platform"
+                                 x:Class="AlarmVideo.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                 xmlns:m="clr-namespace:MapControl;assembly=MapControl.WPF"
+                                 xmlns:platformclient="clr-namespace:VideoOS.Platform.Client;assembly=VideoOS.Platform"  Title="Alarm System" Height="802" Width="1445">
+    <Grid Margin="0,0,-24,-164" RenderTransformOrigin="0.5,0.5">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250"/>
-            <ColumnDefinition Width="550"/>
+            <ColumnDefinition Width="33.2"/>
+            <ColumnDefinition Width="216.8"/>
+            <ColumnDefinition Width="86.4"/>
+            <ColumnDefinition Width="463.6"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBox x:Name="alarmDetailsTextBox" FontSize="14" BorderBrush="Black" BorderThickness="1" Padding="10" FontFamily="Consolas" Margin="0,431,57,0" Grid.Column="1" Grid.RowSpan="2" HorizontalAlignment="Right" Width="418" Height="81" VerticalAlignment="Top"/>
-        <Button x:Name="acceptAlarmsButton" Content="Aktseepteri" Click="acceptAlarmsButton_Click" Margin="0,405,110,0" HorizontalAlignment="Right" Width="130" Height="22" VerticalAlignment="Top"/>
-        <Button x:Name="AddEventUpdateAlarmsButton" Content="Loo sundmus/uuenda" Click="EventAlarmsButton_Click" Margin="0,457,110,0" Width="130" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" RenderTransformOrigin="0.646,0.794"/>
-        <Button x:Name="WrongAlarmButton" Content="Vale Alarm" Click="WrongAlarmButton_Click" Margin="0,405,500,81" Grid.ColumnSpan="2" Width="130" HorizontalAlignment="Right"/>
-        <Button x:Name="AlarmRequestButton" Content="Tee Alarmist valjavotte" Click="AlarmRequestButton_Click" Grid.Row="1" Margin="0,18,500,0" Grid.ColumnSpan="2" Width="130" RenderTransformOrigin="0.514,0.416" Height="21" VerticalAlignment="Top" HorizontalAlignment="Right"/>
-        <Button x:Name="SendVideoButton" Content="Saada videoseinale" Click="SendVideoButton_Click" Margin="0,462,491,0" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="139"/>
-        <Button x:Name="AddEventAlarmsButton" Content="Lisa sundmusele" Click="EventAlarmsButton_Click" Grid.Column="0" Margin="0,497,110,0" Width="130" Height="18" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2"/>
-        <Button x:Name="AlarmClosedButton" Content="Alarm lopetatud" Click="AlarmClosedButton_Click" Grid.Row="1" Grid.Column="0" Margin="0,21,110,0" Width="130" HorizontalAlignment="Right" Height="18" VerticalAlignment="Top"/>
-        <Button x:Name="AddButton" Content="Lisa" Click="AddButton_Click" Grid.Row="1" Grid.Column="1" Margin="0,0,33,160" Width="130" Height="18" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
-        <ListBox x:Name="alarmsListBox" Grid.Column="1" Margin="0,0,-621,110" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="544" Height="302" VerticalAlignment="Bottom">
+        <m:Map x:Name="mapControl" CredentialsProvider="ApOgud8pB1m5oUig6LOfG1JrH3mNM3tcYDZi46MGtY-_HHE8A1UIbFGb7CehaKVS" Margin="11,27,161,197" Grid.ColumnSpan="3" Grid.Column="1">
+            <!-- Add any map items or customization here -->
+        </m:Map>
+
+        <TextBox x:Name="alarmDetailsTextBox" FontSize="14" BorderBrush="Black" BorderThickness="1" Padding="10" FontFamily="Consolas" Margin="0,133,25,0" Grid.Column="3" HorizontalAlignment="Right" Width="418" Height="81" VerticalAlignment="Top" TextChanged="alarmDetailsTextBox_TextChanged" Grid.Row="1"/>
+        <Button x:Name="acceptAlarmsButton" Content="Aktseepteri" Click="acceptAlarmsButton_Click" Margin="0,111,94,0" HorizontalAlignment="Right" Width="130" Height="22" VerticalAlignment="Top" Grid.ColumnSpan="2" Grid.Row="1"/>
+        <Button x:Name="AddEventUpdateAlarmsButton" Content="Loo sundmus/uuenda" Click="EventAlarmsButton_Click" Margin="0,163,94,0" Width="130" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" RenderTransformOrigin="0.646,0.794" Grid.ColumnSpan="2" Grid.Row="1"/>
+        <Button x:Name="WrongAlarmButton" Content="Vale Alarm" Click="WrongAlarmButton_Click" Margin="0,111,20,0" Grid.ColumnSpan="2" Width="130" HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1" Height="22" VerticalAlignment="Top"/>
+        <Button x:Name="AlarmRequestButton" Content="Tee Alarmist valjavotte" Click="AlarmRequestButton_Click" Grid.Row="1" Margin="0,232,20,0" Grid.ColumnSpan="2" Width="130" RenderTransformOrigin="0.514,0.416" Height="21" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Column="1"/>
+        <Button x:Name="SendVideoButton" Content="Saada videoseinale" Click="SendVideoButton_Click" Margin="0,168,20,0" Grid.ColumnSpan="2" Height="19" VerticalAlignment="Top" HorizontalAlignment="Right" Width="130" Grid.Column="1" Grid.Row="1"/>
+        <Button x:Name="AddEventAlarmsButton" Content="Lisa sundmusele" Click="EventAlarmsButton_Click" Grid.Column="0" Margin="0,203,94,0" Width="130" Height="18" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Button x:Name="AlarmClosedButton" Content="Alarm lopetatud" Click="AlarmClosedButton_Click" Grid.Row="1" Grid.Column="0" Margin="0,235,94,0" Width="130" HorizontalAlignment="Right" Height="18" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+        <Button x:Name="AddButton" Content="Lisa" Click="AddButton_Click" Grid.Row="1" Grid.Column="3" Margin="0,221,25,0" Width="130" HorizontalAlignment="Right" Height="18" VerticalAlignment="Top"/>
+        <ListBox x:Name="alarmsListBox" Grid.Column="3" Margin="0,56,-628,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="551" Height="521" VerticalAlignment="Top" Grid.RowSpan="2">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -32,7 +42,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <ListBox x:Name="EventListBox" Grid.Column="1" Margin="0,411,-392,0" FontSize="14" SelectionMode="Single" Height="95" VerticalAlignment="Top" HorizontalAlignment="Right" Width="315">
+        <ListBox x:Name="EventListBox" Grid.Column="3" Margin="0,128,-392,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="315" Grid.Row="1" Height="95" VerticalAlignment="Top">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -46,22 +56,22 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Button x:Name="ActiveAlarms" Content="Aktiivsed alarmid" Click="ActiveAlarms_Click" Grid.Column="1" Margin="627,68,-172,418" />
-        <Button x:Name="WorkAlarms" Content="Toos alarmid" Click="WorkAlarms_Click" Grid.Column="1" Margin="736,68,-280,417"/>
-        <Button x:Name="ClosedAlarms" Content="Suletud alarmid" Click="ClosedAlarms_Click" Grid.Column="1" Margin="864,68,-420,418"/>
-        <Button x:Name="MyAlarms" Content="Minu alarmid" Click="MyAlarms_Click" Grid.Column="1" Margin="987,68,-533,420"/>
-        <Button x:Name="AllAlarms" Content="Koik" Click="AllAlarms_Click" Grid.Column="1" Margin="1106,68,-621,419" RenderTransformOrigin="0.253,1.463"/>
-
-        <platformclient:ImageViewerWpfControl x:Name="_imageViewerWpfControl1" Margin="30,36,159,153" EnableMousePtzEmbeddedHandler="True"
-                                                          MaintainImageAspectRatio="True" EnableVisibleTimestamp="True"
-                                                          ImageOrPaintInfoChanged="ImageOrPaintChangedHandler" Grid.ColumnSpan="2"/>
-        <platformcontrols:VideoOSButtonPrimarySmall x:Name="buttonSelect1" Click="Button_Select1_Click" Margin="0,0,172,110" HorizontalAlignment="Right" Width="243" Height="29" VerticalAlignment="Bottom" Grid.Column="1">Vali Kaamera</platformcontrols:VideoOSButtonPrimarySmall>
-        <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0,189,-48,194" HorizontalAlignment="Right" Width="172">
+        <Button x:Name="ActiveAlarms" Content="Aktiivsed alarmid" Click="ActiveAlarms_Click" Grid.Column="3" Margin="0,27,-170,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="94" />
+        <Button x:Name="WorkAlarms" Content="Toos alarmid" Click="WorkAlarms_Click" Grid.Column="3" Margin="0,26,-278,0" HorizontalAlignment="Right" Width="93" Height="21" VerticalAlignment="Top"/>
+        <Button x:Name="ClosedAlarms" Content="Suletud alarmid" Click="ClosedAlarms_Click" Grid.Column="3" Margin="0,27,-407,0" HorizontalAlignment="Right" Width="105" Height="20" VerticalAlignment="Top"/>
+        <Button x:Name="MyAlarms" Content="Minu alarmid" Click="MyAlarms_Click" Grid.Column="3" Margin="0,26,-530,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="96"/>
+        <Button x:Name="AllAlarms" Content="Koik" Click="AllAlarms_Click" Grid.Column="3"  Margin="0,26,-616,0" Height="21" VerticalAlignment="Top" HorizontalAlignment="Right" Width="64"/>
+        <platformclient:ImageViewerWpfControl x:Name="_imageViewerWpfControl" Margin="0,0,161,392" EnableMousePtzEmbeddedHandler="True"
+                                                  MaintainImageAspectRatio="True" EnableVisibleTimestamp="True"
+                                                  ImageOrPaintInfoChanged="ImageOrPaintChangedHandler" Grid.ColumnSpan="3" Grid.Column="1" Grid.RowSpan="2" HorizontalAlignment="Right" Width="595" Height="241" VerticalAlignment="Bottom"/>
+        <platformcontrols:VideoOSButtonPrimarySmall x:Name="buttonSelect1" Click="Button_Select1_Click" Margin="0,93,90,0" HorizontalAlignment="Right" Width="243" Height="29" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1">Vali Kaamera</platformcontrols:VideoOSButtonPrimarySmall>
+        <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0,388,-50,20" HorizontalAlignment="Right" Width="172">
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxHeader" Margin="5" Checked="checkBoxHeader_Checked" Unchecked="CheckBoxHeader_Unchecked">Naita paist</platformcontrols:VideoOSCheckBoxSmall>
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxDigitalZoom" Margin="5" Checked="checkBoxDigitalZoom_Checked" Unchecked="CheckBoxDigitalZoom_Unchecked">Digitaalne suum</platformcontrols:VideoOSCheckBoxSmall>
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxAdaptiveStreaming" Margin="5" Checked="checkBoxAdaptiveStreaming_Checked" Unchecked="CheckBoxAdaptiveStreaming_Unchecked">Adaptiivne voogesitus</platformcontrols:VideoOSCheckBoxSmall>
         </StackPanel>
     </Grid>
+
 
 
 </platformcontrols:VideoOSWindow>
