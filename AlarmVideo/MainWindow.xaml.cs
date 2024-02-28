@@ -215,7 +215,7 @@ namespace AlarmVideo
                 double initialZoomLevel = 16;
 
                 // Set the initial camera position
-                Microsoft.Maps.MapControl.WPF.Location initialLocation = new Microsoft.Maps.MapControl.WPF.Location(initialLatitude, initialLongitude);
+                Location initialLocation = new Location(initialLatitude, initialLongitude);
 
                 // Set the map control properties
                 mapControl.Center = initialLocation;
@@ -227,8 +227,8 @@ namespace AlarmVideo
                 var marker = new Image
                 {
                     Source = customIcon,
-                    Width = 40,
-                    Height = 40
+                    Width = 30,
+                    Height = 30
                 };
 
                 // Set the location for the marker on the map

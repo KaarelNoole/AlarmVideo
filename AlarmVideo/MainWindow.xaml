@@ -22,10 +22,10 @@
         <Button x:Name="acceptAlarmsButton" Content="Aktseepteri" Click="acceptAlarmsButton_Click" Margin="0,111,94,0" HorizontalAlignment="Right" Width="130" Height="22" VerticalAlignment="Top" Grid.ColumnSpan="2" Grid.Row="1"/>
         <Button x:Name="AddEventUpdateAlarmsButton" Content="Loo sundmus/uuenda" Click="EventAlarmsButton_Click" Margin="0,163,94,0" Width="130" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" RenderTransformOrigin="0.646,0.794" Grid.ColumnSpan="2" Grid.Row="1"/>
         <Button x:Name="WrongAlarmButton" Content="Vale Alarm" Click="WrongAlarmButton_Click" Margin="0,111,20,0" Grid.ColumnSpan="2" Width="130" HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1" Height="22" VerticalAlignment="Top"/>
-        <Button x:Name="AlarmRequestButton" Content="Tee Alarmist valjavotte" Click="AlarmRequestButton_Click" Grid.Row="1" Margin="0,232,20,0" Grid.ColumnSpan="2" Width="130" RenderTransformOrigin="0.514,0.416" Height="21" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Column="1"/>
+        <Button x:Name="AlarmRequestButton" Content="Tee Alarmist valjavõtte" Click="AlarmRequestButton_Click" Grid.Row="1" Margin="0,232,20,0" Grid.ColumnSpan="2" Width="130" RenderTransformOrigin="0.514,0.416" Height="21" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Column="1"/>
         <Button x:Name="SendVideoButton" Content="Saada videoseinale" Click="SendVideoButton_Click" Margin="0,168,20,0" Grid.ColumnSpan="2" Height="19" VerticalAlignment="Top" HorizontalAlignment="Right" Width="130" Grid.Column="1" Grid.Row="1"/>
-        <Button x:Name="AddEventAlarmsButton" Content="Lisa sundmusele" Click="EventAlarmsButton_Click" Grid.Column="0" Margin="0,203,94,0" Width="130" Height="18" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="1" Grid.ColumnSpan="2"/>
-        <Button x:Name="AlarmClosedButton" Content="Alarm lopetatud" Click="AlarmClosedButton_Click" Grid.Row="1" Grid.Column="0" Margin="0,235,94,0" Width="130" HorizontalAlignment="Right" Height="18" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+        <Button x:Name="AddEventAlarmsButton" Content="Lisa sündmusele" Click="EventAlarmsButton_Click" Grid.Column="0" Margin="0,203,94,0" Width="130" Height="18" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Button x:Name="AlarmClosedButton" Content="Alarm lõpetatud" Click="AlarmClosedButton_Click" Grid.Row="1" Grid.Column="0" Margin="0,235,94,0" Width="130" HorizontalAlignment="Right" Height="18" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
         <Button x:Name="AddButton" Content="Lisa" Click="AddButton_Click" Grid.Row="1" Grid.Column="3" Margin="0,221,25,0" Width="130" HorizontalAlignment="Right" Height="18" VerticalAlignment="Top"/>
         <ListBox x:Name="alarmsListBox" Grid.Column="3" Margin="0,56,-628,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="551" Height="521" VerticalAlignment="Top" Grid.RowSpan="2">
             <ListBox.ItemTemplate>
@@ -57,16 +57,16 @@
             </ListBox.ItemTemplate>
         </ListBox>
         <Button x:Name="ActiveAlarms" Content="Aktiivsed alarmid" Click="ActiveAlarms_Click" Grid.Column="3" Margin="0,27,-170,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="94" />
-        <Button x:Name="WorkAlarms" Content="Toos alarmid" Click="WorkAlarms_Click" Grid.Column="3" Margin="0,26,-278,0" HorizontalAlignment="Right" Width="93" Height="21" VerticalAlignment="Top"/>
+        <Button x:Name="WorkAlarms" Content="Töös alarmid" Click="WorkAlarms_Click" Grid.Column="3" Margin="0,26,-278,0" HorizontalAlignment="Right" Width="93" Height="21" VerticalAlignment="Top"/>
         <Button x:Name="ClosedAlarms" Content="Suletud alarmid" Click="ClosedAlarms_Click" Grid.Column="3" Margin="0,27,-407,0" HorizontalAlignment="Right" Width="105" Height="20" VerticalAlignment="Top"/>
         <Button x:Name="MyAlarms" Content="Minu alarmid" Click="MyAlarms_Click" Grid.Column="3" Margin="0,26,-530,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="96"/>
-        <Button x:Name="AllAlarms" Content="Koik" Click="AllAlarms_Click" Grid.Column="3"  Margin="0,26,-616,0" Height="21" VerticalAlignment="Top" HorizontalAlignment="Right" Width="64"/>
+        <Button x:Name="AllAlarms" Content="Kõik" Click="AllAlarms_Click" Grid.Column="3"  Margin="0,26,-616,0" Height="21" VerticalAlignment="Top" HorizontalAlignment="Right" Width="64"/>
         <platformclient:ImageViewerWpfControl x:Name="_imageViewerWpfControl" Margin="10,292,0,0" EnableMousePtzEmbeddedHandler="True"
                                                   MaintainImageAspectRatio="True" EnableVisibleTimestamp="True"
                                                   ImageOrPaintInfoChanged="ImageOrPaintChangedHandler" Grid.ColumnSpan="3" Grid.RowSpan="2" HorizontalAlignment="Left" Width="610" Height="260" VerticalAlignment="Top" Grid.Column="1"/>
         <platformcontrols:VideoOSButtonPrimarySmall x:Name="buttonSelect1" Click="Button_Select1_Click" Margin="0,82,90,0" HorizontalAlignment="Right" Width="244" Height="40" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1">Vali Kaamera</platformcontrols:VideoOSButtonPrimarySmall>
         <StackPanel Grid.Column="3" Orientation="Vertical" Margin="0,388,-50,20" HorizontalAlignment="Right" Width="172">
-            <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxHeader" Margin="5" Checked="checkBoxHeader_Checked" Unchecked="CheckBoxHeader_Unchecked">Naita paist</platformcontrols:VideoOSCheckBoxSmall>
+            <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxHeader" Margin="5" Checked="checkBoxHeader_Checked" Unchecked="CheckBoxHeader_Unchecked">Naita päist</platformcontrols:VideoOSCheckBoxSmall>
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxDigitalZoom" Margin="5" Checked="checkBoxDigitalZoom_Checked" Unchecked="CheckBoxDigitalZoom_Unchecked">Digitaalne suum</platformcontrols:VideoOSCheckBoxSmall>
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxAdaptiveStreaming" Margin="5" Checked="checkBoxAdaptiveStreaming_Checked" Unchecked="CheckBoxAdaptiveStreaming_Unchecked">Adaptiivne voogesitus</platformcontrols:VideoOSCheckBoxSmall>
         </StackPanel>
