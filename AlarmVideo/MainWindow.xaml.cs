@@ -1,22 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using VideoOS.Platform;
 using VideoOS.Platform.Messaging;
-using VideoOS.Platform.UI;
 using VideoOS.Platform.UI.Controls;
-using Microsoft.Maps.MapControl.WPF;
 using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using Location = Microsoft.Maps.MapControl.WPF.Location;
 using VideoOS.Platform.Proxy.Alarm;
 using VideoOS.Platform.Proxy.AlarmClient;
-using VideoOS.Platform.Client;
 using System.Windows.Forms;
 using VideoOS.Platform.Data;
+using Microsoft.Maps.MapControl.WPF;
+using System.Collections.Generic;
+using VideoOS.Platform.UI;
+using System.Windows.Media.Imaging;
+using System.Linq;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using MessageBox = System.Windows.MessageBox;
+using System.Data.SqlClient;
 
 namespace AlarmVideo
 {
@@ -25,7 +28,15 @@ namespace AlarmVideo
         private object _obj1;
         private Item _selectItem1;
         private AlarmClientManager _alarmClientManager;
+        DataGridViewRow _selectedRow = null;
         private MessageCommunication _messageCommunication;
+        private List<Alarm> _alarms;
+        private IAlarmClient alarmClient;
+
+        private ObservableCollection<Alarm> alarmsCollection = new ObservableCollection<Alarm>();
+
+
+
 
         public MainWindow()
         {
@@ -40,40 +51,67 @@ namespace AlarmVideo
             mapControl.Center = initialLocation;
             mapControl.ZoomLevel = initialZoomLevel;
 
+            DataContext = this;
+
+
             LoadClientAlarmsToListBox();
+            //SubscribeAlarms();
+            _alarms = new List<Alarm>();
+
+
         }
 
-        //private void subscribeAlarms()
+        //private void InitializeMessageCommunication()
         //{
-        //    if (_obj1 == null)
-        //    {
-        //        _obj1 = _messageCommunication.RegisterCommunicationFilter(NewAlarmMessageHandler,
-        //           new CommunicationIdFilter(MessageId.Server.NewAlarmIndication), null, EndPointType.Server);
-        //    }
+        //    _messageCommunication = new MessageCommunication();
+        //    _messageCommunication.Init(new ServerId(EnvironmentType.Service.ToString(), "", 80, Guid.Empty));
         //}
 
-        private void LoadClientAlarmsToListBox()
+        //private void SubscribeAlarms()
+        //{
+        //    _obj1 = _messageCommunication.RegisterCommunicationFilter(NewAlarmMessageHandler,
+        //        new CommunicationIdFilter(MessageId.Server.NewAlarmIndication), null, EndPointType.Server);
+        //}
+
+        private async void LoadClientAlarmsToListBox()
         {
             try
             {
-                IAlarmClient alarmClient = _alarmClientManager.GetAlarmClient(EnvironmentManager.Instance.MasterSite.ServerId);
-                AlarmLine[] alarms = alarmClient.GetAlarmLines(1, 100, new AlarmFilter()
+                // Connect to the database
+                string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    Orders = new OrderBy[] { new OrderBy() { Order = Order.Descending, Target = Target.Timestamp } }
-                });
-
-                foreach (AlarmLine line in alarms)
-                {
-                    VideoOS.Platform.Data.Alarm milestoneAlarm = alarmClient.Get(line.Id);
-
-                    if (milestoneAlarm != null)
+                    connection.Open();
+                    // Query to select data from the Camera table
+                    string query = "SELECT EventTime, Source, Event FROM Camera";
+                    using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        alarmsListBox.Items.Add(new Alarm
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            Time = milestoneAlarm.EventHeader.Timestamp.ToLocalTime(),
-                            Camera = milestoneAlarm.EventHeader.Source.Name,
-                            //Priority = milestoneAlarm.EventHeader.Priority,
-                        });
+                            // Clear existing items in the ListBox
+                            alarmsListBox.Items.Clear();
+                            // Read data and populate ListBox
+                            while (reader.Read())
+                            {
+                                // Ensure the data type retrieved matches the EventTime property
+                                if (!reader.IsDBNull(0)) // Check for null values
+                                {
+                                    // If EventTime column is not null, retrieve it as DateTime
+                                    DateTime eventTime = reader.GetDateTime(0);
+                                    // Get other values from the reader
+                                    string source = reader.GetString(1);
+                                    string eventType = reader.GetString(2);
+
+                                    // Create Alarm object and add to ListBox
+                                    alarmsListBox.Items.Add(new Alarm
+                                    {
+                                        EventTime = eventTime,
+                                        Source = source,
+                                        Event = eventType
+                                    });
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -83,31 +121,39 @@ namespace AlarmVideo
             }
         }
 
-        private void NewAlarmMessageHandler(VideoOS.Platform.Messaging.Message message, FQID dest, FQID source)
-        {
-            Alarm alarm = message.Data as Alarm;
 
-            if (alarm != null)
+        private void NewAlarmMessageHandler(VideoOS.Platform.Messaging.Message message, FQID dest, FQID source)
             {
-                if (Dispatcher.CheckAccess())
+                Alarm alarm = message.Data as Alarm;
+                if (alarm != null)
                 {
-                    // Execute on the UI thread directly
-                    ProcessNewAlarm(alarm);
-                }
-                else
-                {
-                    // Execute on the UI thread using Dispatcher
-                    Dispatcher.Invoke(() => ProcessNewAlarm(alarm));
+                    Dispatcher.Invoke(() =>
+                    {
+                        // Assuming your Alarm class has Timestamp, Source, and Priority properties
+                        string content = $"{alarm.EventTime.ToLocalTime()}, {alarm.Source}, {alarm.Event}";
+                        ListBoxItem listBoxItem = new ListBoxItem
+                        {
+                            Content = content
+                        };
+
+                        // Assuming alarmsListBox is the name of your ListBox
+                        alarmsListBox.Items.Insert(0, listBoxItem);
+                    });
                 }
             }
-
-        }
-
-        private void ProcessNewAlarm(Alarm alarm)
+        private void AlarmListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            // Get the selected item from the ListBox
+            Alarm selectedAlarm = alarmsListBox.SelectedItem as Alarm;
 
-                LoadClientAlarmsToListBox();
+            // Do something with the selected alarm, for example, display its details or perform some action
+            if (selectedAlarm != null)
+            {
+                // Do something with the selected alarm
+                MessageBox.Show($"Selected Alarm: {selectedAlarm.EventTime}, {selectedAlarm.Source}, {selectedAlarm.Event}");
+            }
         }
+
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
@@ -169,74 +215,101 @@ namespace AlarmVideo
            
         }
 
-        //private void Button_Select1_Click(object sender, RoutedEventArgs e)
-        //{
-        //    _imageViewerWpfControl.Disconnect();
-        //    _imageViewerWpfControl.Close();
+        private void Button_Select1_Click(object sender, RoutedEventArgs e)
+        {
+            _imageViewerWpfControl.Disconnect();
+            _imageViewerWpfControl.Close();
 
-        //    ItemPickerWpfWindow itemPicker = new ItemPickerWpfWindow()
-        //    {
-        //        KindsFilter = new List<Guid> { Kind.Camera },
-        //        SelectionMode = SelectionModeOptions.AutoCloseOnSelect,
-        //        Items = Configuration.Instance.GetItems()
-        //    };
+            ItemPickerWpfWindow itemPicker = new ItemPickerWpfWindow()
+            {
+                KindsFilter = new List<Guid> { Kind.Camera },
+                SelectionMode = SelectionModeOptions.AutoCloseOnSelect,
+                Items = Configuration.Instance.GetItems()
+            };
 
-        //    if (itemPicker.ShowDialog().Value)
-        //    {
-        //        _selectItem1 = itemPicker.SelectedItems.First();
+            if (itemPicker.ShowDialog().Value)
+            {
+                _selectItem1 = itemPicker.SelectedItems.First();
 
-        //        // Check for null
-        //        if (_selectItem1 != null)
-        //        {
-        //            SetupMapAndMarker();
-        //            SetupImageViewer();
-        //        }
-        //    }
-        //}
+                // Check for null
+                if (_selectItem1 != null)
+                {
+                    SetupMapAndMarker();
+                    SetupImageViewer();
+                }
+            }
+        }
 
-        //private void SetupMapAndMarker()
-        //{
-        //    double initialLatitude = GetLatitudeFromSDK(_selectItem1);
-        //    double initialLongitude = GetLongitudeFromSDK(_selectItem1);
-        //    double initialZoomLevel = 16;
+        private double GetLatitudeFromSDK(Item cameraItem)
+        {
+            if (cameraItem != null && cameraItem.Properties != null)
+            {
+                if (cameraItem.Properties.TryGetValue("Latitude", out var latitudeValue) &&
+                    double.TryParse(latitudeValue.ToString(), out var latitude))
+                {
+                    return latitude;
+                }
+            }
+            return 0.0; 
+        }
 
-        //    // Set the initial camera position
-        //    Location initialLocation = new Location(initialLatitude, initialLongitude);
+        private double GetLongitudeFromSDK(Item cameraItem)
+        {
+            if (cameraItem != null && cameraItem.Properties != null)
+            {
+                if (cameraItem.Properties.TryGetValue("Longitude", out var longitudeValue) &&
+                    double.TryParse(longitudeValue.ToString(), out var longitude))
+                {
+                    return longitude;
+                }
+            }
+            return 0.0; 
+        }
 
-        //    // Set the map control properties
-        //    mapControl.Center = initialLocation;
-        //    mapControl.ZoomLevel = initialZoomLevel;
 
-        //    // Create a custom marker (Image)
-        //    var customIcon = new BitmapImage(new Uri("/icon/icon.png", UriKind.Relative));
+        private void SetupMapAndMarker()
+        {
+            double initialLatitude = GetLatitudeFromSDK(_selectItem1);
+            double initialLongitude = GetLongitudeFromSDK(_selectItem1);
+            double initialZoomLevel = 16;
 
-        //    var marker = new Image
-        //    {
-        //        Source = customIcon,
-        //        Width = 30,
-        //        Height = 30
-        //    };
+            // Set the initial camera position
+            Location initialLocation = new Location(initialLatitude, initialLongitude);
 
-        //    // Set the location for the marker on the map
-        //    MapLayer.SetPosition(marker, initialLocation);
+            // Set the map control properties
+            mapControl.Center = initialLocation;
+            mapControl.ZoomLevel = initialZoomLevel;
 
-        //    // Add the marker to the map's children
-        //    mapControl.Children.Add(marker);
+            // Create a custom marker (Image)
+            var customIcon = new BitmapImage(new Uri("/icon/icon.png", UriKind.Relative));
 
-        //    buttonSelect1.Content = _selectItem1.Name;
-        //}
+            var marker = new Image
+            {
+                Source = customIcon,
+                Width = 30,
+                Height = 30
+            };
 
-        //private void SetupImageViewer()
-        //{
-        //    _imageViewerWpfControl.CameraFQID = _selectItem1.FQID;
-        //    _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
-        //    _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
-        //    _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
-        //    _imageViewerWpfControl.Initialize();
-        //    _imageViewerWpfControl.Connect();
-        //    _imageViewerWpfControl.Selected = true;
-        //    _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
-        //}
+            // Set the location for the marker on the map
+            MapLayer.SetPosition(marker, initialLocation);
+
+            // Add the marker to the map's children
+            mapControl.Children.Add(marker);
+
+            buttonSelect1.Content = _selectItem1.Name;
+        }
+
+        private void SetupImageViewer()
+        {
+            _imageViewerWpfControl.CameraFQID = _selectItem1.FQID;
+            _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
+            _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
+            _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
+            _imageViewerWpfControl.Initialize();
+            _imageViewerWpfControl.Connect();
+            _imageViewerWpfControl.Selected = true;
+            _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
+        }
 
 
         private void ImageViewerWpfControl1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -266,50 +339,50 @@ namespace AlarmVideo
                     new VideoOS.Platform.Messaging.Message(MessageId.Control.StopRecordingCommand), _selectItem1.FQID);
         }
 
-        //private void checkBoxHeader_Checked(object sender, RoutedEventArgs e)
-        //{
-        //    UpdateCheckBoxHeader();
-        //}
+        private void checkBoxHeader_Checked(object sender, RoutedEventArgs e)
+        {
+            UpdateCheckBoxHeader();
+        }
 
-        //private void CheckBoxHeader_Unchecked(object sender, RoutedEventArgs e)
-        //{
-        //    UpdateCheckBoxHeader();
-        //}
+        private void CheckBoxHeader_Unchecked(object sender, RoutedEventArgs e)
+        {
+            UpdateCheckBoxHeader();
+        }
 
-        //private void checkBoxDigitalZoom_Checked(object sender, RoutedEventArgs e)
-        //{
-        //    UpdateCheckBoxDigitalZoom();
-        //}
+        private void checkBoxDigitalZoom_Checked(object sender, RoutedEventArgs e)
+        {
+            UpdateCheckBoxDigitalZoom();
+        }
 
-        //private void CheckBoxDigitalZoom_Unchecked(object sender, RoutedEventArgs e)
-        //{
-        //    UpdateCheckBoxDigitalZoom();
-        //}
+        private void CheckBoxDigitalZoom_Unchecked(object sender, RoutedEventArgs e)
+        {
+            UpdateCheckBoxDigitalZoom();
+        }
 
-        //private void checkBoxAdaptiveStreaming_Checked(object sender, RoutedEventArgs e)
-        //{
-        //    UpdateCheckBoxAdaptiveStreaming();
-        //}
+        private void checkBoxAdaptiveStreaming_Checked(object sender, RoutedEventArgs e)
+        {
+            UpdateCheckBoxAdaptiveStreaming();
+        }
 
-        //private void CheckBoxAdaptiveStreaming_Unchecked(object sender, RoutedEventArgs e)
-        //{
-        //    UpdateCheckBoxAdaptiveStreaming();
-        //}
+        private void CheckBoxAdaptiveStreaming_Unchecked(object sender, RoutedEventArgs e)
+        {
+            UpdateCheckBoxAdaptiveStreaming();
+        }
 
-        //private void UpdateCheckBoxHeader()
-        //{
-        //    _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
-        //}
+        private void UpdateCheckBoxHeader()
+        {
+            _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
+        }
 
-        //private void UpdateCheckBoxDigitalZoom()
-        //{
-        //    _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
-        //}
+        private void UpdateCheckBoxDigitalZoom()
+        {
+            _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
+        }
 
-        //private void UpdateCheckBoxAdaptiveStreaming()
-        //{
-        //    _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
-        //}
+        private void UpdateCheckBoxAdaptiveStreaming()
+        {
+            _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
+        }
 
         private void alarmDetailsTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
