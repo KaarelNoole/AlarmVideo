@@ -30,7 +30,7 @@ namespace AlarmVideo
         private object _obj1;
         private Item _selectItem1;
         private AlarmClientManager _alarmClientManager;
-        DataGridViewRow _selectedRow = null;
+        private Alarm _selectedAlarm = null;
         private MessageCommunication _messageCommunication;
         private List<Alarm> _alarms;
         private IAlarmClient alarmClient;
@@ -75,40 +75,6 @@ namespace AlarmVideo
             // Query the database for new alarms
             LoadClientAlarmsToListBox();
         }
-
-        //private void InitializeMessageCommunication()
-        //{
-        //    _messageCommunication = new MessageCommunication();
-        //    _messageCommunication.Init(new ServerId(EnvironmentType.Service.ToString(), "", 80, Guid.Empty));
-        //}
-
-        //private void SubscribeAlarms()
-        //{
-        //    _obj1 = _messageCommunication.RegisterCommunicationFilter(OnEventsReceived,
-        //        new CommunicationIdFilter(MessageId.Server.NewAlarmIndication), null, EndPointType.Server);
-        //}
-
-        //private void SubscribeToEvents()
-        //{
-        //    // Subscribe to the event source to receive events
-        //    // Replace YourEventSource with the actual event source you're using
-        //    eventSource.EventsReceived += OnEventsReceived;
-        //}
-
-        //private void UnsubscribeFromEvents()
-        //{
-        //    // Unsubscribe from the event source when no longer needed
-        //    // Replace YourEventSource with the actual event source you're using
-        //    YourEventSource.EventsReceived -= OnEventsReceived;
-        //}
-
-
-        //private void OnEventsReceived(object sender, IEnumerable<Event> events)
-        //{
-        //    // Update the alarmsListBox
-        //    LoadClientAlarmsToListBox();
-        //}
-
 
         private void LoadClientAlarmsToListBox()
         {
@@ -158,66 +124,21 @@ namespace AlarmVideo
             }
         }
 
-        private IEnumerable<Alarm> ExtractAlarmsFromEvents(IEnumerable<Event> events)
+        private void ListBoxItem_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            List<Alarm> newAlarms = new List<Alarm>();
-
-            foreach (var @event in events)
+            // Check if the sender is a ListBoxItem
+            if (sender is ListBoxItem listBoxItem)
             {
-                // Extract necessary information from the event to create an Alarm object
-                DateTime eventTime = @event.Time;
-                string source = @event.Source;
-                string eventType = @event.Type.ToString(); // or any property that corresponds to the event description
 
-                // Create a new Alarm object
-                Alarm alarm = new Alarm
+                // Retrieve the corresponding Alarm object from the DataContext
+                if (listBoxItem.DataContext is Alarm selectedAlarm)
                 {
-                    EventTime = eventTime,
-                    Source = source,
-                    Event = eventType
-                };
 
-                // Add the new alarm to the list
-                newAlarms.Add(alarm);
-            }
-
-            return newAlarms;
-        }
-
-        private void NewAlarmMessageHandler(VideoOS.Platform.Messaging.Message message, FQID dest, FQID source)
-            {
-                Alarm alarm = message.Data as Alarm;
-                if (alarm != null)
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        // Assuming your Alarm class has Timestamp, Source, and Priority properties
-                        string content = $"{alarm.EventTime.ToLocalTime()}, {alarm.Source}, {alarm.Event}";
-                        ListBoxItem listBoxItem = new ListBoxItem
-                        {
-                            Content = content
-                        };
-
-                        // Assuming alarmsListBox is the name of your ListBox
-                        alarmsListBox.Items.Insert(0, listBoxItem);
-                    });
+                    // Do something with the selected alarm, such as storing it in a field for further processing
+                    _selectedAlarm = selectedAlarm;
                 }
             }
-        private void AlarmListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // Get the selected item from the ListBox
-            Alarm selectedAlarm = alarmsListBox.SelectedItem as Alarm;
-
-            // Do something with the selected alarm, for example, display its details or perform some action
-            if (selectedAlarm != null)
-            {
-                // Do something with the selected alarm
-                MessageBox.Show($"Selected Alarm: {selectedAlarm.EventTime}, {selectedAlarm.Source}, {selectedAlarm.Event}");
-            }
         }
-
-
-
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
             
