@@ -20,6 +20,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using MessageBox = System.Windows.MessageBox;
 using System.Data.SqlClient;
+using VideoOS.Platform.EventsAndState;
+using System.Windows.Threading;
 
 namespace AlarmVideo
 {
@@ -34,6 +36,7 @@ namespace AlarmVideo
         private IAlarmClient alarmClient;
 
         private ObservableCollection<Alarm> alarmsCollection = new ObservableCollection<Alarm>();
+        private DispatcherTimer timer;
 
 
 
@@ -54,11 +57,23 @@ namespace AlarmVideo
             DataContext = this;
 
 
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(30); // Set the interval for checking (e.g., every 30 seconds)
+            timer.Tick += Timer_Tick;
+            timer.Start();
+
             LoadClientAlarmsToListBox();
             //SubscribeAlarms();
             _alarms = new List<Alarm>();
+            
 
 
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            // Query the database for new alarms
+            LoadClientAlarmsToListBox();
         }
 
         //private void InitializeMessageCommunication()
@@ -69,11 +84,33 @@ namespace AlarmVideo
 
         //private void SubscribeAlarms()
         //{
-        //    _obj1 = _messageCommunication.RegisterCommunicationFilter(NewAlarmMessageHandler,
+        //    _obj1 = _messageCommunication.RegisterCommunicationFilter(OnEventsReceived,
         //        new CommunicationIdFilter(MessageId.Server.NewAlarmIndication), null, EndPointType.Server);
         //}
 
-        private async void LoadClientAlarmsToListBox()
+        //private void SubscribeToEvents()
+        //{
+        //    // Subscribe to the event source to receive events
+        //    // Replace YourEventSource with the actual event source you're using
+        //    eventSource.EventsReceived += OnEventsReceived;
+        //}
+
+        //private void UnsubscribeFromEvents()
+        //{
+        //    // Unsubscribe from the event source when no longer needed
+        //    // Replace YourEventSource with the actual event source you're using
+        //    YourEventSource.EventsReceived -= OnEventsReceived;
+        //}
+
+
+        //private void OnEventsReceived(object sender, IEnumerable<Event> events)
+        //{
+        //    // Update the alarmsListBox
+        //    LoadClientAlarmsToListBox();
+        //}
+
+
+        private void LoadClientAlarmsToListBox()
         {
             try
             {
@@ -121,6 +158,31 @@ namespace AlarmVideo
             }
         }
 
+        private IEnumerable<Alarm> ExtractAlarmsFromEvents(IEnumerable<Event> events)
+        {
+            List<Alarm> newAlarms = new List<Alarm>();
+
+            foreach (var @event in events)
+            {
+                // Extract necessary information from the event to create an Alarm object
+                DateTime eventTime = @event.Time;
+                string source = @event.Source;
+                string eventType = @event.Type.ToString(); // or any property that corresponds to the event description
+
+                // Create a new Alarm object
+                Alarm alarm = new Alarm
+                {
+                    EventTime = eventTime,
+                    Source = source,
+                    Event = eventType
+                };
+
+                // Add the new alarm to the list
+                newAlarms.Add(alarm);
+            }
+
+            return newAlarms;
+        }
 
         private void NewAlarmMessageHandler(VideoOS.Platform.Messaging.Message message, FQID dest, FQID source)
             {
@@ -153,6 +215,7 @@ namespace AlarmVideo
                 MessageBox.Show($"Selected Alarm: {selectedAlarm.EventTime}, {selectedAlarm.Source}, {selectedAlarm.Event}");
             }
         }
+
 
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -301,6 +364,7 @@ namespace AlarmVideo
 
         private void SetupImageViewer()
         {
+
             _imageViewerWpfControl.CameraFQID = _selectItem1.FQID;
             _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
             _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
