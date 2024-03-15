@@ -7,20 +7,15 @@ using VideoOS.Platform.Messaging;
 using VideoOS.Platform.UI.Controls;
 using System.Windows.Controls;
 using Location = Microsoft.Maps.MapControl.WPF.Location;
-using VideoOS.Platform.Proxy.Alarm;
 using VideoOS.Platform.Proxy.AlarmClient;
-using System.Windows.Forms;
-using VideoOS.Platform.Data;
 using Microsoft.Maps.MapControl.WPF;
 using System.Collections.Generic;
 using VideoOS.Platform.UI;
 using System.Windows.Media.Imaging;
 using System.Linq;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using MessageBox = System.Windows.MessageBox;
 using System.Data.SqlClient;
-using VideoOS.Platform.EventsAndState;
 using System.Windows.Threading;
 
 namespace AlarmVideo
@@ -37,8 +32,8 @@ namespace AlarmVideo
 
         private ObservableCollection<Alarm> alarmsCollection = new ObservableCollection<Alarm>();
         private DispatcherTimer timer;
-
-
+        private List<Alarm> closedAlarms = new List<Alarm>();
+        private List<Alarm> activeAlarms = new List<Alarm>();
 
 
         public MainWindow()
@@ -58,7 +53,7 @@ namespace AlarmVideo
 
 
             timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(30); // Set the interval for checking (e.g., every 30 seconds)
+            timer.Interval = TimeSpan.FromSeconds(30); 
             timer.Tick += Timer_Tick;
             timer.Start();
 
@@ -85,8 +80,253 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    // Query to select data from the Camera table
-                    string query = "SELECT EventTime, Source, Event FROM Camera";
+                    // Query to select data from the Camera table excluding closed and accepted alarms
+                    string query = "SELECT EventTime, Source, Event FROM Camera WHERE Status IS NULL /*AND Status NOT Like '%Accepted%'*/";
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            
+                            alarmsListBox.Items.Clear();
+                            
+                            while (reader.Read())
+                            {
+                                
+                                if (!reader.IsDBNull(0))
+                                {
+                                    
+                                    DateTime eventTime = reader.GetDateTime(0);
+                                    
+                                    string source = reader.GetString(1);
+                                    string eventType = reader.GetString(2);
+
+                                    
+                                    alarmsListBox.Items.Add(new Alarm
+                                    {
+                                        EventTime = eventTime,
+                                        Source = source,
+                                        Event = eventType
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                EnvironmentManager.Instance.ExceptionDialog("LoadClientAlarmsToListBox", ex);
+            }
+        }
+
+
+
+        private void ListBoxItem_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is ListBoxItem listBoxItem)
+            {
+
+                if (listBoxItem.DataContext is Alarm selectedAlarm)
+                {
+
+                    _selectedAlarm = selectedAlarm;
+                }
+            }
+        }
+
+        private void AddButton_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
+
+        private void acceptAlarmsButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Check if an alarm is selected in the ListBox
+            if (_selectedAlarm != null)
+            {
+                try
+                {
+                    // Connect to the database
+                    string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                    using (SqlConnection connection = new SqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        // Construct the UPDATE statement with parameters
+
+                        string query = "UPDATE Camera SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        using (SqlCommand command = new SqlCommand(query, connection))
+                        {
+                            // Set parameter values
+                            command.Parameters.AddWithValue("@Status", "Accepted");
+                            command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
+                            command.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
+                            command.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
+
+                            // Execute the command
+                            int rowsAffected = command.ExecuteNonQuery();
+                            if (rowsAffected > 0)
+                            {
+                                // Row updated successfully
+                                MessageBox.Show("Alarm status updated successfully.");
+
+                                alarmsListBox.Items.Remove(_selectedAlarm);
+
+                                activeAlarms.Add(_selectedAlarm);
+                            }
+                            else
+                            {
+                                // No rows affected, alarm not found
+                                MessageBox.Show("Failed to update alarm status. Alarm not found.");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle any exceptions
+                    MessageBox.Show($"An error occurred while updating the alarm status: {ex.Message}");
+                }
+            }
+            else
+            {
+                // No alarm selected, prompt the user to select one
+                MessageBox.Show("Please select an alarm to update its status.");
+            }
+        }
+
+        private void EventAlarmsButton_Click(object sender, RoutedEventArgs e)
+        {
+           
+        }
+
+        private void WrongAlarmButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Check if an alarm is selected in the ListBox
+            if (_selectedAlarm != null)
+            {
+                try
+                {
+                    // Connect to the database
+                    string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                    using (SqlConnection connection = new SqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        // Construct the DELETE statement
+                        Console.WriteLine("Jõuame siia, et kustutada alarm. Lõime ühenduse andmebaasiga");
+                        Console.WriteLine("Proovime kustutada alarmi:"+ _selectedAlarm.Event);
+
+                        string formattedEventTime = _selectedAlarm.EventTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+                        string query = $"DELETE FROM Camera WHERE EventTime = '{formattedEventTime}' AND Source = '{_selectedAlarm.Source}' AND Event = '{_selectedAlarm.Event}'";
+                        
+                        using (SqlCommand command = new SqlCommand(query, connection))
+                        {
+                            // Execute the DELETE statement
+                            int rowsAffected = command.ExecuteNonQuery();
+                            if (rowsAffected > 0)
+                            {
+                                // Row deleted successfully
+                                MessageBox.Show("Alarm kustutati andmebaasist edukalt.");
+                                // Refresh the ListBox to reflect the changes
+                                LoadClientAlarmsToListBox();
+                            }
+                            else
+                            {
+                                // No rows affected, alarm not found
+                                MessageBox.Show("Alarmi kustutamine andmebaasist ebaõnnestus. Alarmi ei leitud");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle any exceptions
+                    MessageBox.Show($"Alarmi kustutamisel ilmnes viga: {ex.Message}");
+                }
+            }
+            else
+            {
+                // No alarm selected, prompt the user to select one
+                MessageBox.Show("Palun vali alarm ,et kustutada");
+            }
+        }
+
+        private void AlarmRequestButton_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
+
+        private void SendVideoButton_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
+
+        private void AlarmClosedButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Check if an alarm is selected in the ListBox
+            if (_selectedAlarm != null)
+            {
+                try
+                {
+                    // Connect to the database
+                    string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                    using (SqlConnection connection = new SqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        // Construct the UPDATE statement with parameters
+
+                        string query = "UPDATE Camera SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event ";
+                        using (SqlCommand command = new SqlCommand(query, connection))
+                        {
+                            // Set parameter values
+                            command.Parameters.AddWithValue("@Status", "Closed");
+                            command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
+                            command.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
+                            command.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
+
+                            // Execute the command
+                            int rowsAffected = command.ExecuteNonQuery();
+                            if (rowsAffected > 0)
+                            {
+                                // Row updated successfully
+                                MessageBox.Show("Alarm status updated successfully.");
+
+                                alarmsListBox.Items.Remove(_selectedAlarm);
+
+                                closedAlarms.Add(_selectedAlarm);
+                            }
+                            else
+                            {
+                                // No rows affected, alarm not found
+                                MessageBox.Show("Failed to update alarm status. Alarm not found.");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle any exceptions
+                    MessageBox.Show($"An error occurred while updating the alarm status: {ex.Message}");
+                }
+            }
+            else
+            {
+                // No alarm selected, prompt the user to select one
+                MessageBox.Show("Please select an alarm to update its status.");
+            }
+        }
+
+        private void ActiveAlarms_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Connect to the database
+                string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    // Query to select data from the Camera table for accepted alarms
+                    string query = "SELECT EventTime, Source, Event FROM Camera WHERE Status = 'Accepted'";
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -120,64 +360,10 @@ namespace AlarmVideo
             }
             catch (Exception ex)
             {
-                EnvironmentManager.Instance.ExceptionDialog("LoadClientAlarmsToListBox", ex);
+                EnvironmentManager.Instance.ExceptionDialog("ActiveAlarms_Click", ex);
             }
         }
 
-        private void ListBoxItem_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            // Check if the sender is a ListBoxItem
-            if (sender is ListBoxItem listBoxItem)
-            {
-
-                // Retrieve the corresponding Alarm object from the DataContext
-                if (listBoxItem.DataContext is Alarm selectedAlarm)
-                {
-
-                    // Do something with the selected alarm, such as storing it in a field for further processing
-                    _selectedAlarm = selectedAlarm;
-                }
-            }
-        }
-        private void AddButton_Click(object sender, RoutedEventArgs e)
-        {
-            
-        }
-
-        private void acceptAlarmsButton_Click(object sender, RoutedEventArgs e)
-        {
-           
-        }
-
-        private void EventAlarmsButton_Click(object sender, RoutedEventArgs e)
-        {
-           
-        }
-
-        private void WrongAlarmButton_Click(object sender, RoutedEventArgs e)
-        {
-           
-        }
-
-        private void AlarmRequestButton_Click(object sender, RoutedEventArgs e)
-        {
-            
-        }
-
-        private void SendVideoButton_Click(object sender, RoutedEventArgs e)
-        {
-            
-        }
-
-        private void AlarmClosedButton_Click(object sender, RoutedEventArgs e)
-        {
-          
-        }
-
-        private void ActiveAlarms_Click(object sender, RoutedEventArgs e)
-        {
-            
-        }
 
         private void WorkAlarms_Click(object sender, RoutedEventArgs e)
         {
@@ -186,7 +372,50 @@ namespace AlarmVideo
 
         private void ClosedAlarms_Click(object sender, RoutedEventArgs e)
         {
-           
+            try
+            {
+                // Connect to the database
+                string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    // Query to select data from the Camera table for accepted alarms
+                    string query = "SELECT EventTime, Source, Event FROM Camera WHERE Status = 'Closed'";
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            // Clear existing items in the ListBox
+                            alarmsListBox.Items.Clear();
+                            // Read data and populate ListBox
+                            while (reader.Read())
+                            {
+                                // Ensure the data type retrieved matches the EventTime property
+                                if (!reader.IsDBNull(0)) // Check for null values
+                                {
+                                    // If EventTime column is not null, retrieve it as DateTime
+                                    DateTime eventTime = reader.GetDateTime(0);
+                                    // Get other values from the reader
+                                    string source = reader.GetString(1);
+                                    string eventType = reader.GetString(2);
+
+                                    // Create Alarm object and add to ListBox
+                                    alarmsListBox.Items.Add(new Alarm
+                                    {
+                                        EventTime = eventTime,
+                                        Source = source,
+                                        Event = eventType
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                EnvironmentManager.Instance.ExceptionDialog("ActiveAlarms_Click", ex);
+            }
         }
 
         private void MyAlarms_Click(object sender, RoutedEventArgs e)
@@ -196,7 +425,7 @@ namespace AlarmVideo
 
         private void AllAlarms_Click(object sender, RoutedEventArgs e)
         {
-           
+            LoadClientAlarmsToListBox();
         }
 
         private void Button_Select1_Click(object sender, RoutedEventArgs e)
