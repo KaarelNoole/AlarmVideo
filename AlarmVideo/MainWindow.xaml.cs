@@ -121,7 +121,7 @@ namespace AlarmVideo
 
 
 
-        private void ListBoxItem_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ListBoxItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (sender is ListBoxItem listBoxItem)
             {
