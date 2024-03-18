@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using VideoOS.Platform.UI;
 using System.Windows.Media.Imaging;
 using System.Linq;
-using System.Collections.ObjectModel;
 using MessageBox = System.Windows.MessageBox;
 using System.Data.SqlClient;
 using System.Windows.Threading;
@@ -23,15 +22,10 @@ namespace AlarmVideo
 {
     public partial class MainWindow : VideoOSWindow
     {
-        private object _obj1;
         private Item _selectItem1;
         private AlarmClientManager _alarmClientManager;
         private Alarm _selectedAlarm = null;
-        private MessageCommunication _messageCommunication;
         private List<Alarm> _alarms;
-        private IAlarmClient alarmClient;
-
-        private ObservableCollection<Alarm> alarmsCollection = new ObservableCollection<Alarm>();
         private DispatcherTimer timer;
         private List<Alarm> closedAlarms = new List<Alarm>();
         private List<Alarm> activeAlarms = new List<Alarm>();
@@ -366,7 +360,7 @@ namespace AlarmVideo
 
         private void WorkAlarms_Click(object sender, RoutedEventArgs e)
         {
-          
+            alarmsListBox.Items.Clear();
         }
 
         private void ClosedAlarms_Click(object sender, RoutedEventArgs e)
@@ -411,7 +405,7 @@ namespace AlarmVideo
 
         private void MyAlarms_Click(object sender, RoutedEventArgs e)
         {
-            
+            alarmsListBox.Items.Clear();
         }
 
         private void AllAlarms_Click(object sender, RoutedEventArgs e)
@@ -527,14 +521,14 @@ namespace AlarmVideo
         {
             if (_selectItem1 != null)
                 EnvironmentManager.Instance.PostMessage(
-                    new VideoOS.Platform.Messaging.Message(MessageId.Control.StartRecordingCommand), _selectItem1.FQID);
+                    new Message(MessageId.Control.StartRecordingCommand), _selectItem1.FQID);
         }
 
         private void ButtonStopRecording1_Click(object sender, RoutedEventArgs e)
         {
             if (_selectItem1 != null)
                 EnvironmentManager.Instance.PostMessage(
-                    new VideoOS.Platform.Messaging.Message(MessageId.Control.StopRecordingCommand), _selectItem1.FQID);
+                    new Message(MessageId.Control.StopRecordingCommand), _selectItem1.FQID);
         }
 
         private void checkBoxHeader_Checked(object sender, RoutedEventArgs e)
