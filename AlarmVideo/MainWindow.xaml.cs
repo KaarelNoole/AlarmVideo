@@ -17,6 +17,7 @@ using MessageBox = System.Windows.MessageBox;
 using System.Data.SqlClient;
 using System.Windows.Threading;
 using System.Windows.Media;
+using System.Globalization;
 
 namespace AlarmVideo
 {
@@ -447,7 +448,7 @@ namespace AlarmVideo
                     return latitude;
                 }
             }
-            return 0.0; 
+            return 0.0;
         }
 
         private double GetLongitudeFromSDK(Item cameraItem)
@@ -460,9 +461,8 @@ namespace AlarmVideo
                     return longitude;
                 }
             }
-            return 0.0; 
+            return 0.0;
         }
-
 
         private void SetupMapAndMarker()
         {
@@ -580,5 +580,6 @@ namespace AlarmVideo
         {
             
         }
+
     }
 }
