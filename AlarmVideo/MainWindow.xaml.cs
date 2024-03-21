@@ -171,17 +171,14 @@ namespace AlarmVideo
         {
             string enteredText = alarmDetailsTextBox.Text;
 
-            // Check if entered text is not empty
+
             if (!string.IsNullOrWhiteSpace(enteredText))
             {
-                // Create a new EventItem with the entered comment
                 EventItem newItem = new EventItem { Comment = enteredText };
 
-                // Clear the existing items and add the new item
                 EventListBox.ItemsSource = null;
                 EventListBox.Items.Add(newItem);
 
-                // Clear the text box
                 alarmDetailsTextBox.Clear();
             }
         }
