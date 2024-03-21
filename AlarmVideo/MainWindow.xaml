@@ -28,14 +28,13 @@
 
                                 <TextBlock x:Name="placeholderTextBox"
                                            Foreground="Gray"
-                                           Text="Lisa siia kommentaar"
+                                           Text="Siia kirjuta kommentaar"
                                            FontSize="{TemplateBinding FontSize}"
                                            FontFamily="{TemplateBinding FontFamily}"
                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                            Padding="10"
                                            Visibility="Collapsed"/>
                             </Grid>
-                            
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsEnabled" Value="false">
@@ -79,14 +78,10 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <m:Map x:Name="mapControl" CredentialsProvider="AvY3DIb-dlbbjtIrLZ2OmxNa22w0klK2RaTL4f9WFZB_M2FLN6HbIenYZVBPepn5" Margin="0,0,147,213" Grid.ColumnSpan="3" Grid.Column="1" HorizontalAlignment="Right" Width="610" Height="263" VerticalAlignment="Bottom"/>
-
-
-
-        <TextBox Style="{DynamicResource TextBoxStyle}" x:Name="alarmDetailsTextBox" FontSize="14" BorderBrush="Black" BorderThickness="1" Padding="10" FontFamily="Consolas" Margin="0,133,25,0" Grid.Column="3" HorizontalAlignment="Right" Width="418" Height="81" VerticalAlignment="Top" TextChanged="alarmDetailsTextBox_TextChanged" Grid.Row="1"/>
-
+        <TextBox  Style="{DynamicResource TextBoxStyle}" x:Name="alarmDetailsTextBox" FontSize="14" BorderBrush="Black" BorderThickness="1" Padding="10" FontFamily="Consolas" Margin="0,133,25,0" Grid.Column="3" HorizontalAlignment="Right" Width="418" Height="81" VerticalAlignment="Top" Grid.Row="1"/>
 
         <Button x:Name="acceptAlarmsButton" Background="LightGreen" Content="Aktseepteri" Click="acceptAlarmsButton_Click" Margin="0,111,94,0" HorizontalAlignment="Right" Width="130" Height="22" VerticalAlignment="Top" Grid.ColumnSpan="2" Grid.Row="1"/>
-        <Button x:Name="AddEventUpdateAlarmsButton" Background="Orange" Content="Loo sundmus/uuenda" Click="EventAlarmsButton_Click" Margin="0,163,94,0" Width="130" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" RenderTransformOrigin="0.646,0.794" Grid.ColumnSpan="2" Grid.Row="1"/>
+        <Button x:Name="AddEventUpdateAlarmsButton" Background="Orange" Content="Loo sundmus/uuenda" Click="EventAlarmsUpdateButton_Click" Margin="0,163,94,0" Width="130" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" RenderTransformOrigin="0.646,0.794" Grid.ColumnSpan="2" Grid.Row="1"/>
         <Button x:Name="WrongAlarmButton" Content="Vale Alarm" Background="Red" Click="WrongAlarmButton_Click" Margin="0,111,20,0" Grid.ColumnSpan="2" Width="130" HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1" Height="22" VerticalAlignment="Top"/>
         <Button x:Name="AlarmRequestButton" Content="Tee Alarmist valjavotte" Background="LightYellow" Click="AlarmRequestButton_Click" Grid.Row="1" Margin="0,232,20,0" Grid.ColumnSpan="2" Width="130" RenderTransformOrigin="0.514,0.416" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Column="1"/>
         <Button x:Name="SendVideoButton" Content="Saada videoseinale" Background="LightYellow" Click="SendVideoButton_Click" Margin="0,163,20,0" Grid.ColumnSpan="2" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Width="130" Grid.Column="1" Grid.Row="1"/>
@@ -96,8 +91,8 @@
         <TextBlock Text="Aeg:" FontSize="12" Margin="0,0,455,400" HorizontalAlignment="Right" Width="68" Height="25" VerticalAlignment="Bottom" Grid.Column="4"/>
         <TextBlock Text="Kaamera:" FontSize="12" Margin="0,0,261,400" HorizontalAlignment="Right" Width="68" Height="25" VerticalAlignment="Bottom" Grid.Column="4"/>
         <TextBlock Text="Event:" FontSize="12" Margin="0,61,56,0" HorizontalAlignment="Right" Width="67" Height="25" VerticalAlignment="Top" Grid.Column="4" RenderTransformOrigin="0.615,1.09"/>
-<ListBox x:Name="alarmsListBox" Grid.Column="4" Margin="0,91,24,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="537" Height="485" VerticalAlignment="Top" Grid.RowSpan="2">
-    <ListBox.ItemTemplate>
+        <ListBox x:Name="alarmsListBox" Grid.Column="4" Margin="0,91,24,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="537" Height="485" VerticalAlignment="Top" Grid.RowSpan="2">
+            <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
@@ -111,8 +106,8 @@
                         <TextBlock Text="{Binding Event}" FontWeight="Bold" Margin="0 0 10 0" HorizontalAlignment="Right" Grid.Column="2"/>
                     </Grid>
                 </DataTemplate>
-    </ListBox.ItemTemplate>
-</ListBox>
+            </ListBox.ItemTemplate>
+        </ListBox>
 
         <ListBox x:Name="EventListBox" Grid.Column="4" Margin="0,128,246,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="315" Grid.Row="1" Height="95" VerticalAlignment="Top">
             <ListBox.ItemTemplate>
@@ -122,13 +117,12 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding AlarmType}" FontWeight="Bold" Margin="0 0 10 0"/>
-                        <TextBlock Text="{Binding TimeStamp}" FontSize="12" Margin="0 0 10 0"/>
+                        <!-- Add TextBlock to display the 'Comment' property -->
+                        <TextBlock Grid.Column="0" Text="{Binding Comment}" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-
 
         <Button x:Name="ActiveAlarms" Content="Aktiivsed alarmid" Click="ActiveAlarms_Click" Grid.Column="4" Margin="0,10,467,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="94" />
         <Button x:Name="WorkAlarms" Content="Toos alarmid" Click="WorkAlarms_Click" Grid.Column="4" Margin="0,11,357,0" HorizontalAlignment="Right" Width="93" Height="21" VerticalAlignment="Top"/>

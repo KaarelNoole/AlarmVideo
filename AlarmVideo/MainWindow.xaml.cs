@@ -18,6 +18,8 @@ using System.Data.SqlClient;
 using System.Windows.Threading;
 using System.Windows.Media;
 using System.Globalization;
+using VideoOS.Platform.EventsAndState;
+using Microsoft.Extensions.Logging;
 
 namespace AlarmVideo
 {
@@ -167,7 +169,16 @@ namespace AlarmVideo
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            
+
+            string enteredText = alarmDetailsTextBox.Text;
+
+            EventItem newItem = new EventItem { Comment = enteredText };
+
+
+            EventListBox.ItemsSource = null;
+
+            EventListBox.Items.Add(newItem);
+            alarmDetailsTextBox.Clear();
         }
 
         private void acceptAlarmsButton_Click(object sender, RoutedEventArgs e)
@@ -192,11 +203,10 @@ namespace AlarmVideo
                             int rowsAffected = command.ExecuteNonQuery();
                             if (rowsAffected > 0)
                             {
-                                MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
-
                                 alarmsListBox.Items.Remove(_selectedAlarm);
 
                                 activeAlarms.Add(_selectedAlarm);
+                                MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
                             }
                             else
                             {
@@ -218,7 +228,59 @@ namespace AlarmVideo
 
         private void EventAlarmsButton_Click(object sender, RoutedEventArgs e)
         {
-           
+
+            var events = new List<Event>
+            {
+                new Event
+                {
+                    Time = DateTime.Now,
+                    Comment = "Test comment 1",
+                    CommentTime = DateTime.Now.AddMinutes(-30),
+                    AlarmEnd = DateTime.Now.AddMinutes(10),
+                    EventEnd = DateTime.Now.AddMinutes(20),
+                    Event_Recovery_time = DateTime.Now.AddMinutes(25)
+                },
+                new Event
+                {
+                    Time = DateTime.Now.AddDays(-1),
+                    Comment = "Test comment 2",
+                    CommentTime = DateTime.Now.AddHours(-3),
+                    AlarmEnd = DateTime.Now.AddHours(-1),
+                    EventEnd = DateTime.Now.AddHours(1),
+                    Event_Recovery_time = DateTime.Now.AddHours(2)
+                },
+        
+            };
+            ProcessEvents(events);
+        }
+
+        private void ProcessEvents(IEnumerable<Event> events)
+        {
+            string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                foreach (var ev in events)
+                {
+                    string insertQuery = "INSERT INTO Event (Time, Comment, CommentTime, AlarmEnd, EventEnd, Event_Recovery_time) " +
+                                         "VALUES (@Time, @Comment, @CommentTime, @AlarmEnd, @EventEnd, @Event_Recovery_time)";
+
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+
+                    
+                    command.Parameters.AddWithValue("@Time", ev.Time);
+                    command.Parameters.AddWithValue("@Comment", ev.Comment);
+                    command.Parameters.AddWithValue("@CommentTime", ev.CommentTime);
+                    command.Parameters.AddWithValue("@AlarmEnd", ev.AlarmEnd);
+                    command.Parameters.AddWithValue("@EventEnd", ev.EventEnd);
+                    command.Parameters.AddWithValue("@Event_Recovery_time", ev.Event_Recovery_time);
+
+                    
+                    command.ExecuteNonQuery();
+                }
+            }
         }
 
         private void WrongAlarmButton_Click(object sender, RoutedEventArgs e)
@@ -241,8 +303,8 @@ namespace AlarmVideo
                             int rowsAffected = command.ExecuteNonQuery();
                             if (rowsAffected > 0)
                             {
-                                MessageBox.Show("Alarm kustutati andmebaasist edukalt.");
                                 LoadClientAlarmsToListBox();
+                                MessageBox.Show("Alarm kustutati andmebaasist edukalt.");
                             }
                             else
                             {
@@ -294,11 +356,12 @@ namespace AlarmVideo
                             int rowsAffected = command.ExecuteNonQuery();
                             if (rowsAffected > 0)
                             {
-                                MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
 
                                 alarmsListBox.Items.Remove(_selectedAlarm);
 
                                 closedAlarms.Add(_selectedAlarm);
+
+                                MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
                             }
                             else
                             {
@@ -575,10 +638,19 @@ namespace AlarmVideo
         {
             _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
         }
-
         private void alarmDetailsTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            
+            string enteredText = alarmDetailsTextBox.Text;
+
+            EventItem newItem = new EventItem { Comment = enteredText };
+
+            EventListBox.ItemsSource = null;
+
+            EventListBox.Items.Add(newItem);
+        }
+        private void EventAlarmsUpdateButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
     }
