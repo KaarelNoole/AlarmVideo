@@ -169,16 +169,21 @@ namespace AlarmVideo
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-
             string enteredText = alarmDetailsTextBox.Text;
 
-            EventItem newItem = new EventItem { Comment = enteredText };
+            // Check if entered text is not empty
+            if (!string.IsNullOrWhiteSpace(enteredText))
+            {
+                // Create a new EventItem with the entered comment
+                EventItem newItem = new EventItem { Comment = enteredText };
 
+                // Clear the existing items and add the new item
+                EventListBox.ItemsSource = null;
+                EventListBox.Items.Add(newItem);
 
-            EventListBox.ItemsSource = null;
-
-            EventListBox.Items.Add(newItem);
-            alarmDetailsTextBox.Clear();
+                // Clear the text box
+                alarmDetailsTextBox.Clear();
+            }
         }
 
         private void acceptAlarmsButton_Click(object sender, RoutedEventArgs e)
