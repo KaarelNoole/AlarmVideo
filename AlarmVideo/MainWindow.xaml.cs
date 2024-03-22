@@ -32,6 +32,9 @@ namespace AlarmVideo
         private DispatcherTimer timer;
         private List<Alarm> closedAlarms = new List<Alarm>();
         private List<Alarm> activeAlarms = new List<Alarm>();
+        private List<EventItem> eventItemList = new List<EventItem>();
+        
+
 
 
         public MainWindow()
@@ -58,8 +61,6 @@ namespace AlarmVideo
             LoadClientAlarmsToListBox();
             _alarms = new List<Alarm>();
             InitializeListBox();
-
-
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -112,8 +113,6 @@ namespace AlarmVideo
                 EnvironmentManager.Instance.ExceptionDialog("LoadClientAlarmsToListBox", ex);
             }
         }
-
-
 
         private void InitializeListBox()
         {
@@ -169,17 +168,33 @@ namespace AlarmVideo
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            string enteredText = alarmDetailsTextBox.Text;
-
-
-            if (!string.IsNullOrWhiteSpace(enteredText))
+            if (alarmsListBox.SelectedItem != null)
             {
-                EventItem newItem = new EventItem { Comment = enteredText };
+                string enteredText = alarmDetailsTextBox.Text;
+                if (!string.IsNullOrWhiteSpace(enteredText))
+                {
+                    EventItem newItem = new EventItem { Comment = enteredText };
 
-                EventListBox.ItemsSource = null;
-                EventListBox.Items.Add(newItem);
+                    eventItemList.Add(newItem);
+
+                    EventListBox.ItemsSource = null;
+                    EventListBox.Items.Add(newItem);
+
+                    alarmDetailsTextBox.Clear();
+                
+                var selectedAlarm = (Alarm)alarmsListBox.SelectedItem;
+
+                selectedAlarm.Comment = enteredText;
+
+                alarmsListBox.Items.Refresh();
 
                 alarmDetailsTextBox.Clear();
+                }
+            }
+            else
+            {
+              
+                MessageBox.Show("Palun vali alarm ,et lisada kommentaar.");
             }
         }
 
@@ -230,29 +245,23 @@ namespace AlarmVideo
 
         private void EventAlarmsButton_Click(object sender, RoutedEventArgs e)
         {
+            var events = new List<Event>();
 
-            var events = new List<Event>
+            foreach (var item in eventItemList)
             {
-                new Event
+                var newEvent = new Event
                 {
                     Time = DateTime.Now,
-                    Comment = "Test comment 1",
-                    CommentTime = DateTime.Now.AddMinutes(-30),
+                    Comment = item.Comment, 
+                    CommentTime = DateTime.Now,
                     AlarmEnd = DateTime.Now.AddMinutes(10),
                     EventEnd = DateTime.Now.AddMinutes(20),
                     Event_Recovery_time = DateTime.Now.AddMinutes(25)
-                },
-                new Event
-                {
-                    Time = DateTime.Now.AddDays(-1),
-                    Comment = "Test comment 2",
-                    CommentTime = DateTime.Now.AddHours(-3),
-                    AlarmEnd = DateTime.Now.AddHours(-1),
-                    EventEnd = DateTime.Now.AddHours(1),
-                    Event_Recovery_time = DateTime.Now.AddHours(2)
-                },
-        
-            };
+                };
+
+                events.Add(newEvent);
+            }
+
             ProcessEvents(events);
         }
 
@@ -423,7 +432,6 @@ namespace AlarmVideo
             }
         }
 
-
         private void WorkAlarms_Click(object sender, RoutedEventArgs e)
         {
             alarmsListBox.Items.Clear();
@@ -568,7 +576,6 @@ namespace AlarmVideo
             _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
         }
 
-
         private void ImageViewerWpfControl1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             _imageViewerWpfControl.Selected = true;
@@ -580,7 +587,6 @@ namespace AlarmVideo
             _imageViewerWpfControl.PaintSize.Width + "x" + _imageViewerWpfControl.PaintSize.Height +
             ", PaintLocation:" + _imageViewerWpfControl.PaintLocation.X + "-" + _imageViewerWpfControl.PaintLocation.Y);
         }
-
 
         private void ButtonStartRecording1_Click(object sender, RoutedEventArgs e)
         {

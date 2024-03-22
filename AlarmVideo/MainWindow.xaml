@@ -109,7 +109,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <ListBox x:Name="EventListBox" Grid.Column="4" Margin="0,128,246,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="315" Grid.Row="1" Height="95" VerticalAlignment="Top">
+        <ListBox x:Name="EventListBox" Grid.Column="4" Margin="0,128,246,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="315" Grid.Row="1" Height="95" VerticalAlignment="Top" >
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -131,7 +131,7 @@
         <platformclient:ImageViewerWpfControl x:Name="_imageViewerWpfControl" BorderBrush="Black" BorderThickness="1" Margin="10,292,0,0" EnableMousePtzEmbeddedHandler="True"
                                                   MaintainImageAspectRatio="True" EnableVisibleTimestamp="True" 
                                                   ImageOrPaintInfoChanged="ImageOrPaintChangedHandler" Grid.ColumnSpan="3" Grid.RowSpan="2" HorizontalAlignment="Left" Width="610" Height="260" VerticalAlignment="Top" Grid.Column="1"/>
-        <platformcontrols:VideoOSButtonPrimarySmall x:Name="buttonSelect1" Click="Button_Select1_Click" Margin="0,82,90,0" HorizontalAlignment="Right" Width="244" Height="40" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1" Content="Vali Kaamera"/>
+        <platformcontrols:VideoOSButtonPrimarySmall x:Name="buttonSelect1" Click="Button_Select1_Click" Margin="0,81,147,0" HorizontalAlignment="Right" Width="187" Height="29" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1" Content="Vali Kaamera"/>
         <StackPanel Grid.Column="3" Orientation="Vertical"  Margin="356,397,0,0" HorizontalAlignment="Left" Width="172" Grid.ColumnSpan="2" Height="78" VerticalAlignment="Top">
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxHeader" Margin="5" Checked="checkBoxHeader_Checked" Unchecked="CheckBoxHeader_Unchecked">Näita päist</platformcontrols:VideoOSCheckBoxSmall>
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxDigitalZoom" Margin="5" Checked="checkBoxDigitalZoom_Checked" Unchecked="CheckBoxDigitalZoom_Unchecked">Digitaalne suum</platformcontrols:VideoOSCheckBoxSmall>
