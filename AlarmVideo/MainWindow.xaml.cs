@@ -20,6 +20,7 @@ using System.Windows.Media;
 using System.Globalization;
 using VideoOS.Platform.EventsAndState;
 using Microsoft.Extensions.Logging;
+using VideoOS.Platform.Data;
 
 namespace AlarmVideo
 {
@@ -33,9 +34,6 @@ namespace AlarmVideo
         private List<Alarm> closedAlarms = new List<Alarm>();
         private List<Alarm> activeAlarms = new List<Alarm>();
         private List<EventItem> eventItemList = new List<EventItem>();
-        
-
-
 
         public MainWindow()
         {
@@ -125,12 +123,25 @@ namespace AlarmVideo
             {
                 _selectedAlarm = alarmsListBox.SelectedItem as Alarm;
 
+                // Clear the existing items in EventListBox
+                EventListBox.Items.Clear();
+
+                // Check if a valid alarm is selected
+                if (_selectedAlarm.Comments == null)
+                {
+                    _selectedAlarm.Comments = new List<string>();
+                }
+
+                // Handle the selection change
                 HandleSelectionChange();
             }
         }
 
+
         private void HandleSelectionChange()
         {
+            EventListBox.Items.Clear();
+
             if (_selectedAlarm != null)
             {
                 ListBoxItem selectedItem = (ListBoxItem)alarmsListBox.ItemContainerGenerator.ContainerFromItem(_selectedAlarm);
@@ -180,7 +191,6 @@ namespace AlarmVideo
                     EventListBox.ItemsSource = null;
                     EventListBox.Items.Add(newItem);
 
-                    alarmDetailsTextBox.Clear();
                 
                 var selectedAlarm = (Alarm)alarmsListBox.SelectedItem;
 
