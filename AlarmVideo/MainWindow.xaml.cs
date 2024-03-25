@@ -124,22 +124,18 @@ namespace AlarmVideo
             {
                 _selectedAlarm = alarmsListBox.SelectedItem as Alarm;
 
-                
                 eventItemList.Clear();
 
                 try
                 {
-                    
                     string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
                     using (SqlConnection connection = new SqlConnection(connectionString))
                     {
                         connection.Open();
-                        string query = "SELECT Comment FROM Alarm WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        string query = "SELECT Comment FROM Comments WHERE AlarmId = @AlarmId";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
-                            command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
-                            command.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
-                            command.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
+                            command.Parameters.AddWithValue("@AlarmId", _selectedAlarm.Id);
 
                             using (SqlDataReader reader = command.ExecuteReader())
                             {
@@ -155,9 +151,8 @@ namespace AlarmVideo
                         }
                     }
 
-                    
-                    EventListBox.ItemsSource = null; 
-                    EventListBox.ItemsSource = eventItemList; 
+                    EventListBox.ItemsSource = null;
+                    EventListBox.ItemsSource = eventItemList;
                 }
                 catch (Exception ex)
                 {
@@ -216,27 +211,29 @@ namespace AlarmVideo
                 string enteredText = alarmDetailsTextBox.Text;
                 if (!string.IsNullOrWhiteSpace(enteredText))
                 {
+                    
                     SaveCommentToDatabase(enteredText);
 
+                    
                     EventItem newItem = new EventItem { Comment = enteredText };
 
+                    
                     eventItemList.Add(newItem);
 
-                    EventListBox.ItemsSource = null; 
-                    EventListBox.ItemsSource = eventItemList; 
+                    
+                    EventListBox.ItemsSource = null;
+                    EventListBox.ItemsSource = eventItemList;
 
+                    
                     alarmDetailsTextBox.Clear();
 
-                    var selectedAlarm = (Alarm)alarmsListBox.SelectedItem;
-
-                    selectedAlarm.Comment = enteredText;
-
+                    
                     alarmsListBox.Items.Refresh();
                 }
             }
             else
             {
-                MessageBox.Show("Palun vali alarm ,et lisada kommentaar.");
+                MessageBox.Show("Please select an alarm to add a comment.");
             }
         }
 
