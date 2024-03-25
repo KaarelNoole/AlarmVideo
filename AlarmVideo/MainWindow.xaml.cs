@@ -21,6 +21,7 @@ using System.Globalization;
 using VideoOS.Platform.EventsAndState;
 using Microsoft.Extensions.Logging;
 using VideoOS.Platform.Data;
+using GMap.NET.MapProviders;
 
 namespace AlarmVideo
 {
@@ -123,59 +124,90 @@ namespace AlarmVideo
             {
                 _selectedAlarm = alarmsListBox.SelectedItem as Alarm;
 
-                // Clear the existing items in EventListBox
-                EventListBox.Items.Clear();
+                
+                eventItemList.Clear();
 
-                // Check if a valid alarm is selected
-                if (_selectedAlarm.Comments == null)
+                try
                 {
-                    _selectedAlarm.Comments = new List<string>();
-                }
-
-                // Handle the selection change
-                HandleSelectionChange();
-            }
-        }
-
-
-        private void HandleSelectionChange()
-        {
-            EventListBox.Items.Clear();
-
-            if (_selectedAlarm != null)
-            {
-                ListBoxItem selectedItem = (ListBoxItem)alarmsListBox.ItemContainerGenerator.ContainerFromItem(_selectedAlarm);
-                if (selectedItem != null)
-                {
-                    TextBlock eventTimeTextBlock = GetChildOfType<TextBlock>(selectedItem, "eventTimeTextBlock");
-                    TextBlock sourceTextBlock = GetChildOfType<TextBlock>(selectedItem, "sourceTextBlock");
-                    TextBlock eventTextBlock = GetChildOfType<TextBlock>(selectedItem, "eventTextBlock");
-
-                    if (eventTimeTextBlock != null)
+                    
+                    string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                    using (SqlConnection connection = new SqlConnection(connectionString))
                     {
-                        eventTimeTextBlock.FontSize = 16;
+                        connection.Open();
+                        string query = "SELECT Comment FROM Camera WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        using (SqlCommand command = new SqlCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
+                            command.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
+                            command.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
+
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    if (!reader.IsDBNull(0))
+                                    {
+                                        string comment = reader.GetString(0);
+                                        eventItemList.Add(new EventItem { Comment = comment });
+                                    }
+                                }
+                            }
+                        }
                     }
 
+                    
+                    EventListBox.ItemsSource = null; 
+                    EventListBox.ItemsSource = eventItemList; 
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error loading comments: {ex.Message}");
                 }
             }
         }
 
-        private T GetChildOfType<T>(DependencyObject depObject, string name) where T : DependencyObject
-        {
-            if (depObject == null) return null;
-            int count = VisualTreeHelper.GetChildrenCount(depObject);
-            for (int i = 0; i < count; i++)
-            {
-                var child = VisualTreeHelper.GetChild(depObject, i);
-                if (child != null && child is T && ((FrameworkElement)child).Name == name)
-                {
-                    return (T)child;
-                }
-                var result = GetChildOfType<T>(child, name);
-                if (result != null) return result;
-            }
-            return null;
-        }
+
+
+        //private void HandleSelectionChange()
+        //{
+        //    eventItemList.Clear();
+
+        //    if (_selectedAlarm != null)
+        //    {
+        //        ListBoxItem selectedItem = (ListBoxItem)alarmsListBox.ItemContainerGenerator.ContainerFromItem(_selectedAlarm);
+        //        if (selectedItem != null)
+        //        {
+        //            TextBlock eventTimeTextBlock = GetChildOfType<TextBlock>(selectedItem, "eventTimeTextBlock");
+        //            TextBlock sourceTextBlock = GetChildOfType<TextBlock>(selectedItem, "sourceTextBlock");
+        //            TextBlock eventTextBlock = GetChildOfType<TextBlock>(selectedItem, "eventTextBlock");
+
+        //            if (eventTimeTextBlock != null)
+        //            {
+        //                eventTimeTextBlock.FontSize = 16;
+        //            }
+        //        }
+        //    }
+
+        //    EventListBox.ItemsSource = null;
+        //    EventListBox.ItemsSource = eventItemList;
+        //}
+
+        //private T GetChildOfType<T>(DependencyObject depObject, string name) where T : DependencyObject
+        //{
+        //    if (depObject == null) return null;
+        //    int count = VisualTreeHelper.GetChildrenCount(depObject);
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        var child = VisualTreeHelper.GetChild(depObject, i);
+        //        if (child != null && child is T && ((FrameworkElement)child).Name == name)
+        //        {
+        //            return (T)child;
+        //        }
+        //        var result = GetChildOfType<T>(child, name);
+        //        if (result != null) return result;
+        //    }
+        //    return null;
+        //}
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
@@ -184,27 +216,60 @@ namespace AlarmVideo
                 string enteredText = alarmDetailsTextBox.Text;
                 if (!string.IsNullOrWhiteSpace(enteredText))
                 {
+                    SaveCommentToDatabase(enteredText);
+
                     EventItem newItem = new EventItem { Comment = enteredText };
 
                     eventItemList.Add(newItem);
 
-                    EventListBox.ItemsSource = null;
-                    EventListBox.Items.Add(newItem);
+                    EventListBox.ItemsSource = null; 
+                    EventListBox.ItemsSource = eventItemList; 
 
-                
-                var selectedAlarm = (Alarm)alarmsListBox.SelectedItem;
+                    alarmDetailsTextBox.Clear();
 
-                selectedAlarm.Comment = enteredText;
+                    var selectedAlarm = (Alarm)alarmsListBox.SelectedItem;
 
-                alarmsListBox.Items.Refresh();
+                    selectedAlarm.Comment = enteredText;
 
-                alarmDetailsTextBox.Clear();
+                    alarmsListBox.Items.Refresh();
                 }
             }
             else
             {
-              
                 MessageBox.Show("Palun vali alarm ,et lisada kommentaar.");
+            }
+        }
+
+
+        private void SaveCommentToDatabase(string comment)
+        {
+            if (_selectedAlarm != null)
+            {
+                try
+                {
+                    string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                    using (SqlConnection connection = new SqlConnection(connectionString))
+                    {
+                        connection.Open();
+
+                        string query = "UPDATE Camera SET Comment = @Comment WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        using (SqlCommand command = new SqlCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@Comment", comment);
+                            command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
+                            command.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
+                            command.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
+                            command.ExecuteNonQuery();
+                        }
+                    }
+
+                }
+
+
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Alarmile lisamisel ilmnes viga: {ex.Message}");
+                }
             }
         }
 
@@ -670,6 +735,5 @@ namespace AlarmVideo
         {
 
         }
-
     }
 }

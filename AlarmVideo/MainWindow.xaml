@@ -109,7 +109,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <ListBox x:Name="EventListBox" Grid.Column="4" Margin="0,128,246,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="315" Grid.Row="1" Height="95" VerticalAlignment="Top" >
+        <ListBox x:Name="EventListBox" Grid.Column="4" Margin="0,128,246,0" FontSize="14"  HorizontalAlignment="Right" Width="315" Grid.Row="1" Height="95" VerticalAlignment="Top" >
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -117,6 +117,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding CommentTime}" />
                         <TextBlock Grid.Column="0" Text="{Binding Comment}" />
                     </Grid>
                 </DataTemplate>

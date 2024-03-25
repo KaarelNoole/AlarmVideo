@@ -12,6 +12,9 @@ namespace AlarmVideo
 
         public string Comment { get; set; }
 
+        public string CommentTime { get; set; }
         public List<string> Comments { get; set; } = new List<string>();
+
+        
     }
 }
