@@ -75,7 +75,7 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query = "SELECT EventTime, Source, Event FROM Camera WHERE Status IS NULL /*AND Status NOT Like '%Accepted%'*/";
+                    string query = "SELECT EventTime, Source, Event FROM Alarm WHERE Status IS NULL /*AND Status NOT Like '%Accepted%'*/";
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -134,7 +134,7 @@ namespace AlarmVideo
                     using (SqlConnection connection = new SqlConnection(connectionString))
                     {
                         connection.Open();
-                        string query = "SELECT Comment FROM Camera WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        string query = "SELECT Comment FROM Alarm WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
@@ -252,7 +252,7 @@ namespace AlarmVideo
                     {
                         connection.Open();
 
-                        string query = "UPDATE Camera SET Comment = @Comment WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        string query = "UPDATE Alarm SET Comment = @Comment WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@Comment", comment);
@@ -284,7 +284,7 @@ namespace AlarmVideo
                     {
                         connection.Open();
 
-                        string query = "UPDATE Camera SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        string query = "UPDATE Alarm SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@Status", "Accepted");
@@ -382,7 +382,7 @@ namespace AlarmVideo
 
                         string formattedEventTime = _selectedAlarm.EventTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-                        string query = $"DELETE FROM Camera WHERE EventTime = '{formattedEventTime}' AND Source = '{_selectedAlarm.Source}' AND Event = '{_selectedAlarm.Event}'";
+                        string query = $"DELETE FROM Alarm WHERE EventTime = '{formattedEventTime}' AND Source = '{_selectedAlarm.Source}' AND Event = '{_selectedAlarm.Event}'";
                         
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
@@ -431,7 +431,7 @@ namespace AlarmVideo
                     {
                         connection.Open();
 
-                        string query = "UPDATE Camera SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event ";
+                        string query = "UPDATE Alarm SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event ";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@Status", "Closed");
@@ -475,7 +475,7 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query = "SELECT EventTime, Source, Event FROM Camera WHERE Status = 'Accepted'";
+                    string query = "SELECT EventTime, Source, Event FROM Alarm WHERE Status = 'Accepted'";
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -520,7 +520,7 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query = "SELECT EventTime, Source, Event FROM Camera WHERE Status = 'Closed'";
+                    string query = "SELECT EventTime, Source, Event FROM Alarm WHERE Status = 'Closed'";
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
