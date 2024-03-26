@@ -126,6 +126,8 @@ namespace AlarmVideo
             {
                 _selectedAlarm = alarmsListBox.SelectedItem as Alarm;
 
+                _selectedAlarm.Id = ((Alarm)alarmsListBox.SelectedItem).Id;
+
                 eventItemList.Clear();
 
                 try
@@ -214,34 +216,33 @@ namespace AlarmVideo
                 string enteredText = alarmDetailsTextBox.Text;
                 if (!string.IsNullOrWhiteSpace(enteredText))
                 {
-                    
-                    SaveCommentToDatabase(enteredText);
+                    // Ensure that the selected item is an Alarm
+                    if (alarmsListBox.SelectedItem is Alarm selectedAlarm)
+                    {
+                        // Get the selected alarm's Id
+                        int selectedAlarmId = selectedAlarm.Id;
 
-                    
-                    EventItem newItem = new EventItem { Comment = enteredText };
+                        // Pass the AlarmId when saving the comment
+                        SaveCommentToDatabase(enteredText, selectedAlarmId);
 
-                    
-                    eventItemList.Add(newItem);
+                        EventItem newItem = new EventItem { Comment = enteredText };
 
-                    
-                    EventListBox.ItemsSource = null;
-                    EventListBox.ItemsSource = eventItemList;
+                        eventItemList.Add(newItem);
 
-                    
-                    alarmDetailsTextBox.Clear();
+                        EventListBox.Items.Refresh();
 
-                    
-                    alarmsListBox.Items.Refresh();
+                        alarmDetailsTextBox.Clear();
+                    }
                 }
             }
             else
             {
-                MessageBox.Show("Palun vali alarm ,et lisada kommentaar.");
+                MessageBox.Show("Palun vali alarm, et lisada kommentaar.");
             }
         }
 
 
-        private void SaveCommentToDatabase(string comment)
+        private void SaveCommentToDatabase(string comment, int alarmId)
         {
             if (_selectedAlarm != null)
             {
@@ -255,7 +256,7 @@ namespace AlarmVideo
                         string query = "INSERT INTO Comments (AlarmId, Comment, CommentTime) VALUES (@Id, @Comment, GETDATE())";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
-                            command.Parameters.AddWithValue("@Id", _selectedAlarm.Id); 
+                            command.Parameters.AddWithValue("@Id", alarmId);
                             command.Parameters.AddWithValue("@Comment", comment);
 
                             command.ExecuteNonQuery();
@@ -445,6 +446,10 @@ namespace AlarmVideo
                                 closedAlarms.Add(_selectedAlarm);
 
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
+
+                                eventItemList.Add(new EventItem { Comment = "Alarm Lõpetatud" });
+                                EventListBox.ItemsSource = null;
+                                EventListBox.ItemsSource = eventItemList;
                             }
                             else
                             {
@@ -472,7 +477,12 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query = "SELECT EventTime, Source, Event FROM Alarm WHERE Status = 'Accepted'";
+
+                    string query = "SELECT DISTINCT a.Id, a.EventTime, a.Source, a.Event " +
+                                   "FROM Alarm a " +
+                                   "LEFT JOIN Comments c ON a.Id = c.AlarmId " +
+                                   "WHERE a.Status = 'Accepted'";
+
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -482,12 +492,15 @@ namespace AlarmVideo
                             {
                                 if (!reader.IsDBNull(0))
                                 {
-                                    DateTime eventTime = reader.GetDateTime(0);
-                                    string source = reader.GetString(1);
-                                    string eventType = reader.GetString(2);
+                                    int id = reader.GetInt32(0); 
+                                    DateTime eventTime = reader.GetDateTime(1);
+                                    string source = reader.GetString(2);
+                                    string eventType = reader.GetString(3);
 
+                                    
                                     alarmsListBox.Items.Add(new Alarm
                                     {
+                                        Id = id,
                                         EventTime = eventTime,
                                         Source = source,
                                         Event = eventType
@@ -517,7 +530,10 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query = "SELECT EventTime, Source, Event FROM Alarm WHERE Status = 'Closed'";
+                    string query = "SELECT DISTINCT a.Id, a.EventTime, a.Source, a.Event " +
+                                   "FROM Alarm a " +
+                                   "LEFT JOIN Comments c ON a.Id = c.AlarmId " +
+                                   "WHERE a.Status = 'Closed'";
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -527,12 +543,15 @@ namespace AlarmVideo
                             {
                                 if (!reader.IsDBNull(0))
                                 {
-                                    DateTime eventTime = reader.GetDateTime(0);
-                                    string source = reader.GetString(1);
-                                    string eventType = reader.GetString(2);
+                                    int id = reader.GetInt32(0);
+                                    DateTime eventTime = reader.GetDateTime(1);
+                                    string source = reader.GetString(2);
+                                    string eventType = reader.GetString(3);
+
 
                                     alarmsListBox.Items.Add(new Alarm
                                     {
+                                        Id = id,
                                         EventTime = eventTime,
                                         Source = source,
                                         Event = eventType
