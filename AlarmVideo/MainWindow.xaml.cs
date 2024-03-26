@@ -75,7 +75,7 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query = "SELECT EventTime, Source, Event FROM Alarm WHERE Status IS NULL /*AND Status NOT Like '%Accepted%'*/";
+                    string query = "SELECT EventTime, Source, Event, Id FROM Alarm WHERE Status IS NULL /*AND Status NOT Like '%Accepted%'*/";
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
@@ -93,13 +93,15 @@ namespace AlarmVideo
                                     
                                     string source = reader.GetString(1);
                                     string eventType = reader.GetString(2);
+                                    int Id = reader.GetInt32(3);
 
-                                    
                                     alarmsListBox.Items.Add(new Alarm
                                     {
+
                                         EventTime = eventTime,
                                         Source = source,
-                                        Event = eventType
+                                        Event = eventType,
+                                        Id = Id,
                                     });
                                 }
                             }
@@ -132,7 +134,7 @@ namespace AlarmVideo
                     using (SqlConnection connection = new SqlConnection(connectionString))
                     {
                         connection.Open();
-                        string query = "SELECT Comment FROM Comments WHERE AlarmId = @AlarmId";
+                        string query = "SELECT Comment, CommentTime FROM Comments WHERE AlarmId = @AlarmId";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
                             command.Parameters.AddWithValue("@AlarmId", _selectedAlarm.Id);
@@ -141,10 +143,11 @@ namespace AlarmVideo
                             {
                                 while (reader.Read())
                                 {
-                                    if (!reader.IsDBNull(0))
+                                    if (!reader.IsDBNull(0) && !reader.IsDBNull(1))
                                     {
                                         string comment = reader.GetString(0);
-                                        eventItemList.Add(new EventItem { Comment = comment });
+                                        DateTime commentTime = reader.GetDateTime(1);
+                                        eventItemList.Add(new EventItem { Comment = comment, CommentTime = commentTime });
                                     }
                                 }
                             }
@@ -156,7 +159,7 @@ namespace AlarmVideo
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error loading comments: {ex.Message}");
+                    MessageBox.Show($"Viga kommentaaride laadimisel: {ex.Message}");
                 }
             }
         }
@@ -233,7 +236,7 @@ namespace AlarmVideo
             }
             else
             {
-                MessageBox.Show("Please select an alarm to add a comment.");
+                MessageBox.Show("Palun vali alarm ,et lisada kommentaar.");
             }
         }
 
@@ -249,23 +252,20 @@ namespace AlarmVideo
                     {
                         connection.Open();
 
-                        string query = "UPDATE Alarm SET Comment = @Comment WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        string query = "INSERT INTO Comments (AlarmId, Comment, CommentTime) VALUES (@Id, @Comment, GETDATE())";
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
+                            command.Parameters.AddWithValue("@Id", _selectedAlarm.Id); 
                             command.Parameters.AddWithValue("@Comment", comment);
-                            command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
-                            command.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
-                            command.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
+
                             command.ExecuteNonQuery();
                         }
                     }
 
                 }
-
-
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Alarmile lisamisel ilmnes viga: {ex.Message}");
+                    MessageBox.Show($"Alarmile lisamisel kommentaar ilmnes viga: {ex.Message}");
                 }
             }
         }

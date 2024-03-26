@@ -9,5 +9,6 @@ namespace AlarmVideo
     public class EventItem
     {
         public string Comment { get; set; }
+        public DateTime CommentTime { get; set; }
     }
 }

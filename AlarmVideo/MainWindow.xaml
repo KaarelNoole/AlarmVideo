@@ -117,8 +117,8 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding CommentTime}" />
-                        <TextBlock Grid.Column="0" Text="{Binding Comment}" />
+                        <TextBlock Grid.Column="0" Text="{Binding CommentTime}"  Margin="0 0 10 0" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Comment}"  Margin="0 0 10 0" HorizontalAlignment="Center"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
