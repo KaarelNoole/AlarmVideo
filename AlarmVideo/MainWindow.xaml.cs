@@ -67,6 +67,7 @@ namespace AlarmVideo
             LoadClientAlarmsToListBox();
         }
 
+        //AlarmsListBox alarmite lisamine 
         private void LoadClientAlarmsToListBox()
         {
             try
@@ -120,6 +121,7 @@ namespace AlarmVideo
             alarmsListBox.SelectionChanged += AlarmsListBox_SelectionChanged;
         }
 
+        //alarmide valimine
         private void AlarmsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (alarmsListBox.SelectedItem != null)
@@ -209,6 +211,7 @@ namespace AlarmVideo
         //    return null;
         //}
 
+        //Kommentaaride lisamise nupp 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
             if (alarmsListBox.SelectedItem != null)
@@ -216,13 +219,13 @@ namespace AlarmVideo
                 string enteredText = alarmDetailsTextBox.Text;
                 if (!string.IsNullOrWhiteSpace(enteredText))
                 {
-                    // Ensure that the selected item is an Alarm
+                    
                     if (alarmsListBox.SelectedItem is Alarm selectedAlarm)
                     {
-                        // Get the selected alarm's Id
+                        
                         int selectedAlarmId = selectedAlarm.Id;
 
-                        // Pass the AlarmId when saving the comment
+                        
                         SaveCommentToDatabase(enteredText, selectedAlarmId);
 
                         EventItem newItem = new EventItem { Comment = enteredText };
@@ -241,7 +244,7 @@ namespace AlarmVideo
             }
         }
 
-
+        //Kommentaaride salvestamine andmebaasi
         private void SaveCommentToDatabase(string comment, int alarmId)
         {
             if (_selectedAlarm != null)
@@ -271,6 +274,7 @@ namespace AlarmVideo
             }
         }
 
+        //Aktseteerimise nupp
         private void acceptAlarmsButton_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedAlarm != null)
@@ -377,7 +381,7 @@ namespace AlarmVideo
                 }
             }
         }
-
+        //Alarmide kustutamine
         private void WrongAlarmButton_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedAlarm != null)
@@ -428,7 +432,7 @@ namespace AlarmVideo
         {
             
         }
-
+        //Alarmi lõpetus nupp
         private void AlarmClosedButton_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedAlarm != null)
@@ -484,7 +488,7 @@ namespace AlarmVideo
                 MessageBox.Show("Valige Alarm, et selle olekut värskendada.");
             }
         }
-
+        //Aktsepteeritud alarmi List nupp
         private void ActiveAlarms_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -538,6 +542,7 @@ namespace AlarmVideo
             alarmsListBox.Items.Clear();
         }
 
+        //Lõpetatud alarmi List nupp
         private void ClosedAlarms_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -588,7 +593,7 @@ namespace AlarmVideo
         {
             alarmsListBox.Items.Clear();
         }
-
+        //Kõik alarme millega pole veel alastatud
         private void AllAlarms_Click(object sender, RoutedEventArgs e)
         {
             LoadClientAlarmsToListBox();
