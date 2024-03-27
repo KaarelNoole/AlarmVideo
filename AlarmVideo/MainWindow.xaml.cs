@@ -35,6 +35,7 @@ namespace AlarmVideo
         private List<Alarm> closedAlarms = new List<Alarm>();
         private List<Alarm> activeAlarms = new List<Alarm>();
         private List<EventItem> eventItemList = new List<EventItem>();
+        private bool isTimerTickEvent = false;
 
         public MainWindow()
         {
@@ -64,8 +65,25 @@ namespace AlarmVideo
 
         private void Timer_Tick(object sender, EventArgs e)
         {
+            //if (!isTimerTickEvent)
+            //{
+            //    LoadClientAlarmsToListBox();
+            //}
             LoadClientAlarmsToListBox();
         }
+
+        //private void ActiveAlarms(object sender, RoutedEventArgs e)
+        //{
+        //    HandleActiveAlarmsClick();
+        //}
+
+
+        //private void HandleActiveAlarmsClick()
+        //{
+        //    isTimerTickEvent = true;
+        //    LoadClientAlarmsToListBox();
+        //    isTimerTickEvent = false;
+        //}
 
         //AlarmsListBox alarmite lisamine 
         private void LoadClientAlarmsToListBox()
@@ -81,17 +99,17 @@ namespace AlarmVideo
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            
+
                             alarmsListBox.Items.Clear();
-                            
+
                             while (reader.Read())
                             {
-                                
+
                                 if (!reader.IsDBNull(0))
                                 {
-                                    
+
                                     DateTime eventTime = reader.GetDateTime(0);
-                                    
+
                                     string source = reader.GetString(1);
                                     string eventType = reader.GetString(2);
                                     int Id = reader.GetInt32(3);
@@ -299,6 +317,9 @@ namespace AlarmVideo
                             {
                                 alarmsListBox.Items.Remove(_selectedAlarm);
                                 activeAlarms.Add(_selectedAlarm);
+                                eventItemList.Add(new EventItem { Comment = "Alarm aktsepteeritud" });
+                                EventListBox.ItemsSource = null;
+                                EventListBox.ItemsSource = eventItemList;
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
 
                                 string insertCommentQuery = "INSERT INTO Comments (AlarmId, Comment, CommentTime) VALUES (@AlarmId, @Comment, GETDATE())";
@@ -308,10 +329,6 @@ namespace AlarmVideo
                                     insertCommentCommand.Parameters.AddWithValue("@Comment", "Alarm aktsepteeritud");
                                     insertCommentCommand.ExecuteNonQuery();
                                 }
-
-                                eventItemList.Add(new EventItem { Comment = "Alarm aktsepteeritud" });
-                                EventListBox.ItemsSource = null;
-                                EventListBox.ItemsSource = eventItemList;
                             }
                             else
                             {
@@ -456,7 +473,10 @@ namespace AlarmVideo
                             if (rowsAffected > 0)
                             {
                                 alarmsListBox.Items.Remove(_selectedAlarm);
-                                activeAlarms.Add(_selectedAlarm);
+                                closedAlarms.Add(_selectedAlarm);
+                                eventItemList.Add(new EventItem { Comment = "Alarm lõpetatud" });
+                                EventListBox.ItemsSource = null;
+                                EventListBox.ItemsSource = eventItemList;
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
 
                                 string insertCommentQuery = "INSERT INTO Comments (AlarmId, Comment, CommentTime) VALUES (@AlarmId, @Comment, GETDATE())";
@@ -466,10 +486,6 @@ namespace AlarmVideo
                                     insertCommentCommand.Parameters.AddWithValue("@Comment", "Alarm lõpetatud");
                                     insertCommentCommand.ExecuteNonQuery();
                                 }
-
-                                eventItemList.Add(new EventItem { Comment = "Alarm lõpetatud" });
-                                EventListBox.ItemsSource = null;
-                                EventListBox.ItemsSource = eventItemList;
                             }
                             else
                             {
