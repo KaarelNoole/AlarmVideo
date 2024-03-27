@@ -282,21 +282,32 @@ namespace AlarmVideo
                     {
                         connection.Open();
 
-                        string query = "UPDATE Alarm SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
-                        using (SqlCommand command = new SqlCommand(query, connection))
+                        string updateQuery = "UPDATE Alarm SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        using (SqlCommand updateCommand = new SqlCommand(updateQuery, connection))
                         {
-                            command.Parameters.AddWithValue("@Status", "Accepted");
-                            command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
-                            command.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
-                            command.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
+                            updateCommand.Parameters.AddWithValue("@Status", "Accepted");
+                            updateCommand.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
+                            updateCommand.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
+                            updateCommand.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
 
-                            int rowsAffected = command.ExecuteNonQuery();
+                            int rowsAffected = updateCommand.ExecuteNonQuery();
                             if (rowsAffected > 0)
                             {
                                 alarmsListBox.Items.Remove(_selectedAlarm);
-
                                 activeAlarms.Add(_selectedAlarm);
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
+
+                                string insertCommentQuery = "INSERT INTO Comments (AlarmId, Comment, CommentTime) VALUES (@AlarmId, @Comment, GETDATE())";
+                                using (SqlCommand insertCommentCommand = new SqlCommand(insertCommentQuery, connection))
+                                {
+                                    insertCommentCommand.Parameters.AddWithValue("@AlarmId", _selectedAlarm.Id);
+                                    insertCommentCommand.Parameters.AddWithValue("@Comment", "Alarm aktsepteeritud");
+                                    insertCommentCommand.ExecuteNonQuery();
+                                }
+
+                                eventItemList.Add(new EventItem { Comment = "Alarm aktsepteeritud" });
+                                EventListBox.ItemsSource = null;
+                                EventListBox.ItemsSource = eventItemList;
                             }
                             else
                             {
@@ -429,25 +440,30 @@ namespace AlarmVideo
                     {
                         connection.Open();
 
-                        string query = "UPDATE Alarm SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event ";
-                        using (SqlCommand command = new SqlCommand(query, connection))
+                        string updateQuery = "UPDATE Alarm SET Status = @Status WHERE EventTime = @EventTime AND Source = @Source AND Event = @Event";
+                        using (SqlCommand updateCommand = new SqlCommand(updateQuery, connection))
                         {
-                            command.Parameters.AddWithValue("@Status", "Closed");
-                            command.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
-                            command.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
-                            command.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
+                            updateCommand.Parameters.AddWithValue("@Status", "Closed");
+                            updateCommand.Parameters.AddWithValue("@EventTime", _selectedAlarm.EventTime);
+                            updateCommand.Parameters.AddWithValue("@Source", _selectedAlarm.Source);
+                            updateCommand.Parameters.AddWithValue("@Event", _selectedAlarm.Event);
 
-                            int rowsAffected = command.ExecuteNonQuery();
+                            int rowsAffected = updateCommand.ExecuteNonQuery();
                             if (rowsAffected > 0)
                             {
-
                                 alarmsListBox.Items.Remove(_selectedAlarm);
-
-                                closedAlarms.Add(_selectedAlarm);
-
+                                activeAlarms.Add(_selectedAlarm);
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
 
-                                eventItemList.Add(new EventItem { Comment = "Alarm Lõpetatud" });
+                                string insertCommentQuery = "INSERT INTO Comments (AlarmId, Comment, CommentTime) VALUES (@AlarmId, @Comment, GETDATE())";
+                                using (SqlCommand insertCommentCommand = new SqlCommand(insertCommentQuery, connection))
+                                {
+                                    insertCommentCommand.Parameters.AddWithValue("@AlarmId", _selectedAlarm.Id);
+                                    insertCommentCommand.Parameters.AddWithValue("@Comment", "Alarm lõpetatud");
+                                    insertCommentCommand.ExecuteNonQuery();
+                                }
+
+                                eventItemList.Add(new EventItem { Comment = "Alarm lõpetatud" });
                                 EventListBox.ItemsSource = null;
                                 EventListBox.ItemsSource = eventItemList;
                             }
