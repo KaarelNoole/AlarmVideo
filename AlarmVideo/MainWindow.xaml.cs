@@ -27,14 +27,9 @@ namespace AlarmVideo
         private AlarmClientManager _alarmClientManager;
         private Alarm _selectedAlarm = null;
         private List<Alarm> _alarms;
-        private DispatcherTimer timer;
         private List<Alarm> closedAlarms = new List<Alarm>();
         private List<Alarm> activeAlarms = new List<Alarm>();
         private List<EventItem> eventItemList = new List<EventItem>();
-        private Thread _databaseWatcherThread;
-        private bool _isWatchingDatabase = false;
-        private bool _performOperationsOnActivation = true;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -119,7 +114,6 @@ namespace AlarmVideo
         private void MainWindow_Activated(object sender, EventArgs e)
         {
             LoadClientAlarmsToListBox();
-                
 
         }
 
@@ -170,7 +164,6 @@ namespace AlarmVideo
                     }
                 }
 
-                // Värskendage alarmsListBox automaatselt
                 Dispatcher.Invoke(() =>
                 {
                     alarmsListBox.ItemsSource = null;
