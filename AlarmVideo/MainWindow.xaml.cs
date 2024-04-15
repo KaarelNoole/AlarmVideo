@@ -2,16 +2,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using VideoOS.Platform;
+using VideoOS.Platform.Data;
 using VideoOS.Platform.Messaging;
 using VideoOS.Platform.Proxy.AlarmClient;
 using VideoOS.Platform.UI;
@@ -21,23 +23,42 @@ using MessageBox = System.Windows.MessageBox;
 
 namespace AlarmVideo
 {
-    public partial class MainWindow : VideoOSWindow
+    public partial class MainWindow : VideoOSWindow, INotifyPropertyChanged
     {
-        private Item _selectItem1;
+        private Item _selectItem;
         private AlarmClientManager _alarmClientManager;
         private Alarm _selectedAlarm = null;
-        private List<Alarm> _alarms;
         private List<Alarm> closedAlarms = new List<Alarm>();
         private List<Alarm> activeAlarms = new List<Alarm>();
         private List<EventItem> eventItemList = new List<EventItem>();
+        private DispatcherTimer _timer;
+        public event EventHandler NewAlarmAdded;
+        private DatabaseWatcher _databaseWatcher;
+        private bool _allowListBoxUpdate = true;
+
+
+        private ObservableCollection<Alarm> _alarms;
+        public ObservableCollection<Alarm> Alarms
+        {
+            get { return _alarms; }
+            set
+            {
+                _alarms = value;
+                OnPropertyChanged(nameof(Alarms));
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public MainWindow()
         {
             InitializeComponent();
             InitializeListBox();
-            StartWatchingDatabase();
             _alarmClientManager = new AlarmClientManager();
-
-            Activated += MainWindow_Activated;
 
             double initialLatitude = 58.883333;
             double initialLongitude = 25.557222;
@@ -48,148 +69,39 @@ namespace AlarmVideo
             mapControl.ZoomLevel = initialZoomLevel;
 
             DataContext = this;
+            _alarms = new ObservableCollection<Alarm>();
             LoadClientAlarmsToListBox();
-            _alarms = new List<Alarm>();
-        }
 
-        private void StartWatchingDatabase()
-        {
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
+
             string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
-            SqlDependency.Start(connectionString);
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-                using (SqlCommand command = new SqlCommand("SELECT Id, EventTime, Source, Event FROM Alarm WHERE Status IS NULL", connection))
-                {
-                    command.Notification = null;
-
-                    SqlDependency dependency = new SqlDependency(command);
-
-                    dependency.OnChange += Database_OnChange;
-
-
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        _alarms = new List<Alarm>();
-                        while (reader.Read())
-                        {
-                            _alarms.Add(new Alarm
-                            {
-                                Id = reader.GetInt32(0),
-                                EventTime = reader.GetDateTime(1),
-                                Source = reader.GetString(2),
-                                Event = reader.GetString(3)
-                            });
-                        }
-                    }
-                }
-            }
+            _databaseWatcher = new DatabaseWatcher(connectionString, alarmsListBox);
+            _databaseWatcher.NewAlarmAdded += NewAlarmAddedHandler;
+            _databaseWatcher.StartWatching();
         }
 
-
-        private void StopWatchingDatabase()
+        private void OnNewAlarmAdded()
         {
-            SqlDependency.Stop("Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;");
+            NewAlarmAdded?.Invoke(this, EventArgs.Empty);
         }
 
-        private void Database_OnChange(object sender, SqlNotificationEventArgs e)
-        {
-            if (e.Info == SqlNotificationInfo.Invalid || e.Info == SqlNotificationInfo.Error)
-            {
-                Console.WriteLine("Andmebaasi jälgimisel ilmnes viga.");
-                return;
-            }
-
-            UpdateAlarmsList();
-        }
-
-
-        protected override void OnClosed(EventArgs e)
-        {
-            base.OnClosed(e);
-            StopWatchingDatabase(); 
-        }
-
-        private void MainWindow_Activated(object sender, EventArgs e)
+        private void NewAlarmAddedHandler(object sender, EventArgs e)
         {
             LoadClientAlarmsToListBox();
-
         }
 
-        private void UpdateAlarmsList()
+        private void LoadNewDataFromDatabase()
         {
-            try
-            {
-                string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
-
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    using (SqlCommand command = new SqlCommand("SELECT Id, EventTime, Source, Event FROM Alarm WHERE Status IS NULL", connection))
-                    {
-                        SqlDependency dependency = new SqlDependency(command);
-
-                        dependency.OnChange += (sender, e) =>
-                        {
-                            if (e.Type == SqlNotificationType.Change)
-                            {
-                                UpdateAlarmsList();
-                            }
-                        };
-
-                        List<Alarm> newAlarms = new List<Alarm>();
-
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                newAlarms.Add(new Alarm
-                                {
-                                    Id = reader.GetInt32(0),
-                                    EventTime = reader.GetDateTime(1),
-                                    Source = reader.GetString(2),
-                                    Event = reader.GetString(3)
-                                });
-                            }
-                        }
-
-                        foreach (Alarm newAlarm in newAlarms)
-                        {
-                            if (!_alarms.Any(alarm => alarm.Id == newAlarm.Id))
-                            {
-                                _alarms.Add(newAlarm);
-                            }
-                        }
-                    }
-                }
-
-                Dispatcher.Invoke(() =>
-                {
-                    alarmsListBox.ItemsSource = null;
-                    alarmsListBox.ItemsSource = _alarms;
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Viga andmete laadimisel: {ex.Message}");
-            }
-        }
-
-
-        //AlarmsListBox alarmite lisamine 
-        private void LoadClientAlarmsToListBox()
-        {
-            if (alarmsListBox.ItemsSource != null)
-            {
-                alarmsListBox.ItemsSource = null;
-            }
-
-
-            alarmsListBox.Items.Clear();
+            
+            if (!_allowListBoxUpdate) return; 
 
             try
             {
+                ObservableCollection<Alarm> loadedAlarms = new ObservableCollection<Alarm>();
+
                 string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
@@ -199,36 +111,102 @@ namespace AlarmVideo
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            
-
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0))
+                                Alarm newAlarm = new Alarm
                                 {
-                                    DateTime eventTime = reader.GetDateTime(0);
-                                    string source = reader.GetString(1);
-                                    string eventType = reader.GetString(2);
-                                    int Id = reader.GetInt32(3);
+                                    Id = reader.GetInt32(3),
+                                    EventTime = reader.GetDateTime(0),
+                                    Source = reader.GetString(1),
+                                    Event = reader.GetString(2)
+                                };
 
-                                    alarmsListBox.Items.Add(new Alarm
-                                    {
-                                        EventTime = eventTime,
-                                        Source = source,
-                                        Event = eventType,
-                                        Id = Id, 
-                                    });
+                                if (!alarmsListBox.Items.Cast<Alarm>().Any(alarm => alarm.Id == newAlarm.Id))
+                                {
+                                    loadedAlarms.Add(newAlarm);
+                                    alarmsListBox.Items.Add(newAlarm);
                                 }
-                                alarmsListBox.Items.Refresh();
                             }
                         }
                     }
                 }
+
+                Dispatcher.Invoke(() =>
+                {
+                    Alarms.Clear();
+                    foreach (var alarm in loadedAlarms)
+                    {
+                        Alarms.Add(alarm);
+                    }
+                    OnNewAlarmAdded();
+                });
             }
             catch (Exception ex)
             {
-                EnvironmentManager.Instance.ExceptionDialog("LoadClientAlarmsToListBox", ex);
+                EnvironmentManager.Instance.ExceptionDialog("LoadNewDataFromDatabase", ex);
             }
         }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            LoadNewDataFromDatabase();
+        }
+
+        //AlarmsListBox alarmite lisamine 
+        public void LoadClientAlarmsToListBox()
+        {
+            _allowListBoxUpdate = true;
+
+            Dispatcher.Invoke(() =>
+            {
+                if (alarmsListBox.ItemsSource != null)
+                {
+                    alarmsListBox.ItemsSource = null;
+                }
+
+                alarmsListBox.Items.Clear();
+
+                try
+                {
+                    string connectionString = "Data Source=10.100.80.67;Initial Catalog=minubaas;User ID=minunimi;Password=test;";
+                    using (SqlConnection connection = new SqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        string query = "SELECT EventTime, Source, Event, Id FROM Alarm WHERE Status IS NULL";
+                        using (SqlCommand command = new SqlCommand(query, connection))
+                        {
+                            using (SqlDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    if (!reader.IsDBNull(0))
+                                    {
+                                        DateTime eventTime = reader.GetDateTime(0);
+                                        string source = reader.GetString(1);
+                                        string eventType = reader.GetString(2);
+                                        int Id = reader.GetInt32(3);
+
+                                        alarmsListBox.Items.Add(new Alarm
+                                        {
+                                            EventTime = eventTime,
+                                            Source = source,
+                                            Event = eventType,
+                                            Id = Id,
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EnvironmentManager.Instance.ExceptionDialog("LoadClientAlarmsToListBox", ex);
+                }
+            });
+        }
+
+
         private void InitializeListBox()
         {
             alarmsListBox.SelectionChanged += AlarmsListBox_SelectionChanged;
@@ -279,6 +257,8 @@ namespace AlarmVideo
                     MessageBox.Show($"Viga kommentaaride laadimisel: {ex.Message}");
                 }
             }
+        
+    
         }
         //Kommentaaride lisamise nupp 
         private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -396,6 +376,7 @@ namespace AlarmVideo
                 MessageBox.Show("Valige Alarm, et selle olekut värskendada.");
             }
         }
+
         private void EventAlarmsButton_Click(object sender, RoutedEventArgs e)
         {
             var events = new List<Event>();
@@ -551,13 +532,14 @@ namespace AlarmVideo
             }
         }
         //Aktsepteeritud alarmi List nupp
-        private void ActiveAlarms_Click(object sender, RoutedEventArgs e)
+        private  void ActiveAlarms_Click(object sender, RoutedEventArgs e)
         {
+            _allowListBoxUpdate = false;
+
             if (alarmsListBox.ItemsSource != null)
             {
                 alarmsListBox.ItemsSource = null;
             }
-
 
             alarmsListBox.Items.Clear();
 
@@ -577,11 +559,13 @@ namespace AlarmVideo
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
+                            var loadedAlarms = new List<Alarm>();
+
                             while (reader.Read())
                             {
                                 if (!reader.IsDBNull(0))
                                 {
-                                    int id = reader.GetInt32(0); 
+                                    int id = reader.GetInt32(0);
                                     DateTime eventTime = reader.GetDateTime(1);
                                     string source = reader.GetString(2);
                                     string eventType = reader.GetString(3);
@@ -595,6 +579,11 @@ namespace AlarmVideo
                                     });
                                 }
                             }
+
+                            if (_allowListBoxUpdate)
+                            {
+                                LoadClientAlarmsToListBox();
+                            }
                         }
                     }
                 }
@@ -603,21 +592,23 @@ namespace AlarmVideo
             {
                 EnvironmentManager.Instance.ExceptionDialog("ActiveAlarms_Click", ex);
             }
+
         }
+
         private void WorkAlarms_Click(object sender, RoutedEventArgs e)
         {
-            alarmsListBox.Items.Clear();
+
         }
 
         //Lõpetatud alarmi List nupp
         private void ClosedAlarms_Click(object sender, RoutedEventArgs e)
         {
+            _allowListBoxUpdate = false;
+
             if (alarmsListBox.ItemsSource != null)
             {
                 alarmsListBox.ItemsSource = null;
             }
-
-
             alarmsListBox.Items.Clear();
 
             try
@@ -653,6 +644,11 @@ namespace AlarmVideo
                                     });
                                 }
                             }
+
+                            if (_allowListBoxUpdate)
+                            {
+                                LoadClientAlarmsToListBox();
+                            }
                         }
                     }
                 }
@@ -664,6 +660,7 @@ namespace AlarmVideo
         }
         private void MyAlarms_Click(object sender, RoutedEventArgs e)
         {
+            alarmsListBox.ItemsSource = null;
             alarmsListBox.Items.Clear();
         }
         //Kõik alarme millega pole veel alastatud
@@ -671,7 +668,7 @@ namespace AlarmVideo
         {
             LoadClientAlarmsToListBox();
         }
-        private void Button_Select1_Click(object sender, RoutedEventArgs e)
+        private void Button_Select_Click(object sender, RoutedEventArgs e)
         {
             _imageViewerWpfControl.Disconnect();
             _imageViewerWpfControl.Close();
@@ -685,9 +682,9 @@ namespace AlarmVideo
 
             if (itemPicker.ShowDialog().Value)
             {
-                _selectItem1 = itemPicker.SelectedItems.First();
+                _selectItem = itemPicker.SelectedItems.First();
 
-                if (_selectItem1 != null)
+                if (_selectItem != null)
                 {
                     SetupMapAndMarker();
                     SetupImageViewer();
@@ -720,8 +717,8 @@ namespace AlarmVideo
         }
         private void SetupMapAndMarker()
         {
-            double initialLatitude = GetLatitudeFromSDK(_selectItem1);
-            double initialLongitude = GetLongitudeFromSDK(_selectItem1);
+            double initialLatitude = GetLatitudeFromSDK(_selectItem);
+            double initialLongitude = GetLongitudeFromSDK(_selectItem);
             double initialZoomLevel = 16;
 
             Location initialLocation = new Location(initialLatitude, initialLongitude);
@@ -741,12 +738,12 @@ namespace AlarmVideo
 
             mapControl.Children.Add(marker);
 
-            buttonSelect1.Content = _selectItem1.Name;
+            buttonSelect.Content = _selectItem.Name;
         }
         private void SetupImageViewer()
         {
 
-            _imageViewerWpfControl.CameraFQID = _selectItem1.FQID;
+            _imageViewerWpfControl.CameraFQID = _selectItem.FQID;
             _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
             _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
             _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
@@ -755,7 +752,7 @@ namespace AlarmVideo
             _imageViewerWpfControl.Selected = true;
             _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
         }
-        private void ImageViewerWpfControl1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ImageViewerWpfControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             _imageViewerWpfControl.Selected = true;
         }
@@ -765,18 +762,18 @@ namespace AlarmVideo
             _imageViewerWpfControl.PaintSize.Width + "x" + _imageViewerWpfControl.PaintSize.Height +
             ", PaintLocation:" + _imageViewerWpfControl.PaintLocation.X + "-" + _imageViewerWpfControl.PaintLocation.Y);
         }
-        private void ButtonStartRecording1_Click(object sender, RoutedEventArgs e)
+        private void ButtonStartRecording_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectItem1 != null)
+            if (_selectItem != null)
                 EnvironmentManager.Instance.PostMessage(
-                    new Message(MessageId.Control.StartRecordingCommand), _selectItem1.FQID);
+                    new Message(MessageId.Control.StartRecordingCommand), _selectItem.FQID);
         }
-        private void ButtonStopRecording1_Click(object sender, RoutedEventArgs e)
+        private void ButtonStopRecording_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectItem1 != null)
+            if (_selectItem != null)
                 EnvironmentManager.Instance.PostMessage(
-                    new Message(MessageId.Control.StopRecordingCommand), _selectItem1.FQID);
-        }
+                    new Message(MessageId.Control.StopRecordingCommand), _selectItem.FQID);
+        }   
         private void checkBoxHeader_Checked(object sender, RoutedEventArgs e)
         {
             UpdateCheckBoxHeader();
