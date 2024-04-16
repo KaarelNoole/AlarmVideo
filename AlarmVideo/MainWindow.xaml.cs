@@ -549,7 +549,7 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-
+                   
                     string query = "SELECT DISTINCT a.Id, a.EventTime, a.Source, a.Event " +
                                    "FROM Alarm a " +
                                    "LEFT JOIN Comments c ON a.Id = c.AlarmId " +
@@ -584,6 +584,7 @@ namespace AlarmVideo
                             {
                                 LoadClientAlarmsToListBox();
                             }
+                            
                         }
                     }
                 }
@@ -597,7 +598,14 @@ namespace AlarmVideo
 
         private void WorkAlarms_Click(object sender, RoutedEventArgs e)
         {
+            _allowListBoxUpdate = false;
+            alarmsListBox.ItemsSource = null;
+            alarmsListBox.Items.Clear();
 
+            if (_allowListBoxUpdate)
+            {
+                LoadClientAlarmsToListBox();
+            }
         }
 
         //Lõpetatud alarmi List nupp
@@ -660,14 +668,21 @@ namespace AlarmVideo
         }
         private void MyAlarms_Click(object sender, RoutedEventArgs e)
         {
+            _allowListBoxUpdate = false;
             alarmsListBox.ItemsSource = null;
             alarmsListBox.Items.Clear();
+
+            if (_allowListBoxUpdate)
+            {
+                LoadClientAlarmsToListBox();
+            }
         }
         //Kõik alarme millega pole veel alastatud
         private void AllAlarms_Click(object sender, RoutedEventArgs e)
         {
             LoadClientAlarmsToListBox();
         }
+        //Kaamera valimise nupp
         private void Button_Select_Click(object sender, RoutedEventArgs e)
         {
             _imageViewerWpfControl.Disconnect();
@@ -686,63 +701,86 @@ namespace AlarmVideo
 
                 if (_selectItem != null)
                 {
-                    SetupMapAndMarker();
+                    SetupMapAndMarker(_selectItem);
                     SetupImageViewer();
                 }
             }
         }
-        private double GetLatitudeFromSDK(Item cameraItem)
-        {
-            if (cameraItem != null && cameraItem.Properties != null)
-            {
-                if (cameraItem.Properties.TryGetValue("Latitude", out var latitudeValue) &&
-                    double.TryParse(latitudeValue.ToString(), out var latitude))
-                {
-                    return latitude;
-                }
-            }
-            return 0.0;
-        }
-        private double GetLongitudeFromSDK(Item cameraItem)
-        {
-            if (cameraItem != null && cameraItem.Properties != null)
-            {
-                if (cameraItem.Properties.TryGetValue("Longitude", out var longitudeValue) &&
-                    double.TryParse(longitudeValue.ToString(), out var longitude))
-                {
-                    return longitude;
-                }
-            }
-            return 0.0;
-        }
-        private void SetupMapAndMarker()
-        {
-            double initialLatitude = GetLatitudeFromSDK(_selectItem);
-            double initialLongitude = GetLongitudeFromSDK(_selectItem);
-            double initialZoomLevel = 16;
 
-            Location initialLocation = new Location(initialLatitude, initialLongitude);
-
-            mapControl.Center = initialLocation;
-            mapControl.ZoomLevel = initialZoomLevel;
-            var customIcon = new BitmapImage(new Uri("/icon/icon.png", UriKind.Relative));
-
-            var marker = new Image
+        private void GetLongitudeAndLatitude(Item item, VideoOSTreeViewItem tn)
+        {
+            VideoOSTreeViewItem fields = new VideoOSTreeViewItem()
             {
-                Source = customIcon,
-                Width = 30,
-                Height = 30
+                Data = "Fields",
+                IsExpanded = true,
             };
 
-            MapLayer.SetPosition(marker, initialLocation);
+            var fieldsChildren = new List<VideoOSTreeViewItem>()
+            {
+                new VideoOSTreeViewItem() { Data = "HasRelated : " + item.HasRelated },
+                new VideoOSTreeViewItem() { Data = "HasChildren: " + item.HasChildren },
+            };
 
-            mapControl.Children.Add(marker);
+            if (item.PositioningInformation == null)
+            {
+                fieldsChildren.Add(new VideoOSTreeViewItem() { Data = "No PositioningInformation" });
+            }
+            else
+            {
+                fieldsChildren.Add(new VideoOSTreeViewItem()
+                {
+                    Data = "PositioningInformation: Latitude=" + item.PositioningInformation.Latitude + ", Longitude=" + item.PositioningInformation.Longitude
+                });
+            }
 
-            buttonSelect.Content = _selectItem.Name;
+            fields.Children = fieldsChildren;
+            if (tn.Children != null)
+            {
+                tn.Children.Add(fields);
+            }
+            else
+            {
+                tn.Children = new List<VideoOSTreeViewItem> { fields };
+            }
         }
+
+        //Kaart
+        private void SetupMapAndMarker(Item item)
+        {
+            if (item != null && item.PositioningInformation != null)
+            {
+                double latitude = item.PositioningInformation.Latitude;
+                double longitude = item.PositioningInformation.Longitude;
+
+                Location cameraLocation = new Location(latitude, longitude);
+                VideoOSTreeViewItem videoOSTreeView = new VideoOSTreeViewItem();
+
+                var customIcon = new BitmapImage(new Uri("/icon/icon.png", UriKind.Relative));
+                var marker = new Image
+                {
+                    Source = customIcon,
+                    Width = 30,
+                    Height = 30
+                };
+
+                MapLayer.SetPosition(marker, cameraLocation);
+                mapControl.Children.Add(marker);
+
+                mapControl.Center = cameraLocation;
+                mapControl.ZoomLevel = 16;
+
+
+                GetLongitudeAndLatitude(item, videoOSTreeView); 
+            }
+            else
+            {
+                MessageBox.Show("Kaamera laius- ja pikkuskraade ei leitud või need on puudulikud.", "Viga", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        //Kaamera list
         private void SetupImageViewer()
         {
-
             _imageViewerWpfControl.CameraFQID = _selectItem.FQID;
             _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
             _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
