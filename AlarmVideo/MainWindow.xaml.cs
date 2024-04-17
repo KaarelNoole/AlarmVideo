@@ -38,6 +38,8 @@ namespace AlarmVideo
         private double _speed = 0.0;
 
 
+
+
         private ObservableCollection<Alarm> _alarms;
         public ObservableCollection<Alarm> Alarms
         {
@@ -82,6 +84,8 @@ namespace AlarmVideo
             _databaseWatcher = new DatabaseWatcher(connectionString, alarmsListBox);
             _databaseWatcher.NewAlarmAdded += NewAlarmAddedHandler;
             _databaseWatcher.StartWatching();
+
+            EnvironmentManager.Instance.RegisterReceiver(PlaybackTimeChangedHandler, new MessageIdFilter(MessageId.SmartClient.PlaybackCurrentTimeIndication));
         }
 
         private void OnNewAlarmAdded()
@@ -922,6 +926,18 @@ namespace AlarmVideo
             EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
                 MessageId.SmartClient.PlaybackCommand,
                 new PlaybackCommandData() { Command = PlaybackData.PlayForward, Speed = _speed }));
+        }
+
+        private object PlaybackTimeChangedHandler(VideoOS.Platform.Messaging.Message message, FQID dest, FQID sender)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                DateTime time = (DateTime)message.Data;
+                
+                if (sender == null)
+                    _textBoxTime1.Text = time.ToShortDateString() + "  " + time.ToLongTimeString();
+            });
+            return null;
         }
     }
 }
