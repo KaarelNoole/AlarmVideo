@@ -27,7 +27,7 @@ namespace AlarmVideo
     {
         private Item _selectItem;
         private AlarmClientManager _alarmClientManager;
-        private Alarm _selectedAlarm = null;
+        private Alarm _selectedAlarm;
         private List<Alarm> closedAlarms = new List<Alarm>();
         private List<Alarm> activeAlarms = new List<Alarm>();
         private List<EventItem> eventItemList = new List<EventItem>();
@@ -35,6 +35,7 @@ namespace AlarmVideo
         public event EventHandler NewAlarmAdded;
         private DatabaseWatcher _databaseWatcher;
         private bool _allowListBoxUpdate = true;
+        private double _speed = 0.0;
 
 
         private ObservableCollection<Alarm> _alarms;
@@ -215,12 +216,13 @@ namespace AlarmVideo
         //alarmide valimine
         private void AlarmsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (alarmsListBox.SelectedItem != null)
+            if (alarmsListBox.SelectedItem is Alarm selectedAlarm)
             {
+                //_selectItem = alarmsListBox.SelectedItem as Item;
                 _selectedAlarm = alarmsListBox.SelectedItem as Alarm;
 
                 _selectedAlarm.Id = ((Alarm)alarmsListBox.SelectedItem).Id;
-
+                _selectedAlarm.Source = ((Alarm)alarmsListBox.SelectedItem).Source;
                 eventItemList.Clear();
 
                 try
@@ -248,17 +250,15 @@ namespace AlarmVideo
                             }
                         }
                     }
-
                     EventListBox.ItemsSource = null;
                     EventListBox.ItemsSource = eventItemList;
+                    SetupImageViewer();
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Viga kommentaaride laadimisel: {ex.Message}");
                 }
             }
-        
-    
         }
         //Kommentaaride lisamise nupp 
         private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -313,7 +313,6 @@ namespace AlarmVideo
                             command.ExecuteNonQuery();
                         }
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -781,14 +780,21 @@ namespace AlarmVideo
         //Kaamera list
         private void SetupImageViewer()
         {
-            _imageViewerWpfControl.CameraFQID = _selectItem.FQID;
-            _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
-            _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
-            _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
-            _imageViewerWpfControl.Initialize();
-            _imageViewerWpfControl.Connect();
-            _imageViewerWpfControl.Selected = true;
-            _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
+            if (_selectItem != null)
+            {
+                _imageViewerWpfControl.CameraFQID = _selectItem.FQID;
+                _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
+                _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
+                _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
+                _imageViewerWpfControl.Initialize();
+                _imageViewerWpfControl.Connect();
+                _imageViewerWpfControl.Selected = true;
+                _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
+            }
+            else
+            {
+                MessageBox.Show("Valitud kaamera andmed puuduvad.", "Viga", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         private void ImageViewerWpfControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -868,5 +874,54 @@ namespace AlarmVideo
         //    await Task.Delay(2000);
 
         //}
+
+        private void ButtonMode_Click(object sender, RoutedEventArgs e)
+        {
+            if (EnvironmentManager.Instance.Mode == Mode.ClientLive)
+            {
+                EnvironmentManager.Instance.Mode = Mode.ClientPlayback;
+                _buttonMode1.Content = "Praegune režiim: Taasesitus";
+            }
+            else
+            {
+                EnvironmentManager.Instance.Mode = Mode.ClientLive;
+                _buttonMode1.Content = "Praegune režiim: Otse esitlus";
+            }
+            _buttonReverse.IsEnabled = EnvironmentManager.Instance.Mode == Mode.ClientPlayback;
+            _buttonForward.IsEnabled = EnvironmentManager.Instance.Mode == Mode.ClientPlayback;
+            _buttonStop.IsEnabled = EnvironmentManager.Instance.Mode == Mode.ClientPlayback;
+        }
+
+        private void ButtonReverse_Click(object sender, RoutedEventArgs e)
+        {
+            if (_speed == 0.0)
+                _speed = 1.0;
+            else
+                _speed *= 2;
+            EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+                MessageId.SmartClient.PlaybackCommand,
+                new PlaybackCommandData() { Command = PlaybackData.PlayReverse, Speed = _speed }));
+        }
+
+        private void ButtonStop_Click(object sender, RoutedEventArgs e)
+        {
+            EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+            MessageId.SmartClient.PlaybackCommand,
+            new PlaybackCommandData() { Command = PlaybackData.PlayStop }));
+            EnvironmentManager.Instance.Mode = Mode.ClientPlayback;
+            _buttonMode1.Content = "Praegune režiim: Taasesitus";
+            _speed = 0.0;
+        }
+
+        private void ButtonForward_Click(object sender, RoutedEventArgs e)
+        {
+            if (_speed == 0.0)
+                _speed = 1.0;
+            else
+                _speed *= 2;
+            EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+                MessageId.SmartClient.PlaybackCommand,
+                new PlaybackCommandData() { Command = PlaybackData.PlayForward, Speed = _speed }));
+        }
     }
 }

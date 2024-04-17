@@ -7,7 +7,7 @@ namespace AlarmVideo
     public class Alarm : INotifyPropertyChanged
     {
 
-        private int _id;
+        public int _id;
         public int Id
         {
             get { return _id; }
