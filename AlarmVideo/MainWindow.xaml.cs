@@ -902,14 +902,14 @@ namespace AlarmVideo
                 _speed = 1.0;
             else
                 _speed *= 2;
-            EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+            EnvironmentManager.Instance.SendMessage(new Message(
                 MessageId.SmartClient.PlaybackCommand,
                 new PlaybackCommandData() { Command = PlaybackData.PlayReverse, Speed = _speed }));
         }
 
         private void ButtonStop_Click(object sender, RoutedEventArgs e)
         {
-            EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+            EnvironmentManager.Instance.SendMessage(new Message(
             MessageId.SmartClient.PlaybackCommand,
             new PlaybackCommandData() { Command = PlaybackData.PlayStop }));
             EnvironmentManager.Instance.Mode = Mode.ClientPlayback;
@@ -923,12 +923,12 @@ namespace AlarmVideo
                 _speed = 1.0;
             else
                 _speed *= 2;
-            EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+            EnvironmentManager.Instance.SendMessage(new Message(
                 MessageId.SmartClient.PlaybackCommand,
                 new PlaybackCommandData() { Command = PlaybackData.PlayForward, Speed = _speed }));
         }
 
-        private object PlaybackTimeChangedHandler(VideoOS.Platform.Messaging.Message message, FQID dest, FQID sender)
+        private object PlaybackTimeChangedHandler(Message message, FQID dest, FQID sender)
         {
             Dispatcher.Invoke(() =>
             {
