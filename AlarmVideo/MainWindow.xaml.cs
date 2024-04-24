@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +20,7 @@ using VideoOS.Platform.Messaging;
 using VideoOS.Platform.Proxy.AlarmClient;
 using VideoOS.Platform.UI;
 using VideoOS.Platform.UI.Controls;
+using static VideoOS.Platform.Messaging.MessageId;
 using Location = Microsoft.Maps.MapControl.WPF.Location;
 using MessageBox = System.Windows.MessageBox;
 
@@ -218,11 +221,14 @@ namespace AlarmVideo
         }
 
         //alarmide valimine
-        private void AlarmsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private  void  AlarmsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            _imageViewerWpfControl.Disconnect();
+            _imageViewerWpfControl.Close();
+
             if (alarmsListBox.SelectedItem is Alarm selectedAlarm)
             {
-                //_selectItem = alarmsListBox.SelectedItem as Item;
+                _selectItem = alarmsListBox.SelectedItem as Item;
                 _selectedAlarm = alarmsListBox.SelectedItem as Alarm;
 
                 _selectedAlarm.Id = ((Alarm)alarmsListBox.SelectedItem).Id;
@@ -254,15 +260,33 @@ namespace AlarmVideo
                             }
                         }
                     }
+                    
                     EventListBox.ItemsSource = null;
                     EventListBox.ItemsSource = eventItemList;
-                    SetupImageViewer();
                 }
+                //     _selectItem = new Item { Name = _selectedAlarm.Source };
+                //    ItemPickerWpfWindow itemPicker = new ItemPickerWpfWindow()
+                //    {
+                //        KindsFilter = new List<Guid> { Kind.Camera },
+                //        SelectionMode = SelectionModeOptions.AutoCloseOnSelect,
+                //        Items = Configuration.Instance.GetItems()
+                //    };
+
+                //    _selectItem = itemPicker.SelectedItems.First();
+
+                //    if (_selectItem != null)
+                //    {
+                //        SetupMapAndMarker(_selectItem);
+                //        SetupImageViewer();
+                //    }
+
+                //}
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Viga kommentaaride laadimisel: {ex.Message}");
                 }
             }
+            
         }
         //Kommentaaride lisamise nupp 
         private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -697,13 +721,14 @@ namespace AlarmVideo
                 SelectionMode = SelectionModeOptions.AutoCloseOnSelect,
                 Items = Configuration.Instance.GetItems()
             };
-
+            
             if (itemPicker.ShowDialog().Value)
             {
                 _selectItem = itemPicker.SelectedItems.First();
 
                 if (_selectItem != null)
                 {
+                    _imageViewerWpfControl.CameraFQID = _selectItem.FQID;
                     SetupMapAndMarker(_selectItem);
                     SetupImageViewer();
                 }
@@ -786,7 +811,8 @@ namespace AlarmVideo
         {
             if (_selectItem != null)
             {
-                _imageViewerWpfControl.CameraFQID = _selectItem.FQID;
+                //_selectItem.FQID =  { Server: XPCORS: desktop - e6fogtd  Id: 071fad0f - 2ceb - 433d - ac93 - 0c0f2741d8cb, ObjectId: 30ae8ba4 - 9309 - 4dc0 - 9416 - 71d2d469053f, Type: 5135ba21 - f1dc - 4321 - 806a - 6ce2017343c0};
+                _imageViewerWpfControl.CameraFQID = _selectItem.FQID;                                                                                                                                                                                                                                                                                                                                                                               
                 _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
                 _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
                 _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
@@ -800,7 +826,7 @@ namespace AlarmVideo
                 MessageBox.Show("Valitud kaamera andmed puuduvad.", "Viga", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        private void ImageViewerWpfControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ImageViewerWpfControl(object sender, MouseButtonEventArgs e)
         {
             _imageViewerWpfControl.Selected = true;
         }

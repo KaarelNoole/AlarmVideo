@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using VideoOS.Platform;
 
 namespace AlarmVideo
 {
@@ -59,6 +60,8 @@ namespace AlarmVideo
                 OnPropertyChanged(nameof(Status));
             }
         }
+
+        public FQID FQID { get; internal set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName)

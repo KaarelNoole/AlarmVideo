@@ -3,7 +3,7 @@
                                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                                  xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
                                  xmlns:platformclient="clr-namespace:VideoOS.Platform.Client;assembly=VideoOS.Platform" xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av"
-                                x:Class="AlarmVideo.MainWindow" Title="Alarm System" Height="802" Width="1445">
+                                x:Class="AlarmVideo.MainWindow" Title="Alarm System" Height="802" Width="1481">
     <platformcontrols:VideoOSWindow.Resources>
         <SolidColorBrush x:Key="TextBox.Static.Border" Color="#FFABAdB3"/>
         <SolidColorBrush x:Key="TextBox.MouseOver.Border" Color="#FF7EB4EA"/>
@@ -64,15 +64,16 @@
             </Style.Triggers>
         </Style>
     </platformcontrols:VideoOSWindow.Resources>
-    <Grid Margin="10,0,-43,-164" RenderTransformOrigin="0.5,0.5">
+    <Grid Margin="10,0,0,0" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" Width="1478" Height="950" VerticalAlignment="Top">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="33.2"/>
             <ColumnDefinition Width="216.8"/>
             <ColumnDefinition Width="86.4"/>
             <ColumnDefinition Width="436.8"/>
             <ColumnDefinition Width="26.8"/>
-            <ColumnDefinition Width="325*"/>
-            <ColumnDefinition Width="14*"/>
+            <ColumnDefinition Width="364*"/>
+            <ColumnDefinition Width="274*"/>
+            <ColumnDefinition Width="39*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -89,10 +90,10 @@
         <Button x:Name="AddEventAlarmsButton" Content="Lisa sündmusele" Background="Orange" Click="EventAlarmsButton_Click" Grid.Column="0" Margin="0,203,94,0" Width="130" Height="22" VerticalAlignment="Top" HorizontalAlignment="Right" Grid.Row="1" Grid.ColumnSpan="2"/>
         <Button x:Name="AlarmClosedButton" Content="Alarm lõpetatud" Background="LightGreen" Click="AlarmClosedButton_Click" Grid.Row="1" Grid.Column="0" Margin="0,235,94,0" Width="130" HorizontalAlignment="Right" Height="22" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
         <Button x:Name="AddButton" Content="Lisa" Click="AddButton_Click" Background="LightBlue" Grid.Row="1" Grid.Column="3" Margin="0,225,0,0" Width="130" HorizontalAlignment="Right" Height="18" VerticalAlignment="Top"/>
-        <TextBlock Text="Aeg:" FontSize="12" Margin="0,0,455,400" HorizontalAlignment="Right" Width="68" Height="25" VerticalAlignment="Bottom" Grid.Column="5"/>
-        <TextBlock Text="Kaamera:" FontSize="12" Margin="0,0,261,400" HorizontalAlignment="Right" Width="68" Height="25" VerticalAlignment="Bottom" Grid.Column="5"/>
-        <TextBlock Text="Event:" FontSize="12" Margin="0,51,56,0" HorizontalAlignment="Right" Width="67" Height="25" VerticalAlignment="Top" Grid.Column="5" RenderTransformOrigin="0.615,1.09"/>
-        <ListBox x:Name="alarmsListBox" Grid.Column="5" Margin="0,91,24,0" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="516" Height="485" VerticalAlignment="Top" Grid.RowSpan="2">
+        <TextBlock Text="Aeg:" FontSize="12" Margin="127,0,0,400" HorizontalAlignment="Left" Width="68" Height="25" VerticalAlignment="Bottom" Grid.Column="5"/>
+        <TextBlock Text="Kaamera:" FontSize="12" Margin="321,0,0,400" HorizontalAlignment="Left" Width="68" Height="25" VerticalAlignment="Bottom" Grid.Column="5" Grid.ColumnSpan="2"/>
+        <TextBlock Text="Event:" FontSize="12" Margin="163,51,0,0" HorizontalAlignment="Left" Width="67" Height="25" VerticalAlignment="Top" Grid.Column="6" RenderTransformOrigin="0.615,1.09"/>
+        <ListBox x:Name="alarmsListBox" Grid.Column="5" Margin="0,0,26,374" FontSize="14" SelectionMode="Single" HorizontalAlignment="Right" Width="503" Height="485" VerticalAlignment="Bottom" Grid.RowSpan="2" Grid.ColumnSpan="2">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid HorizontalAlignment="Stretch">
@@ -109,38 +110,52 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-
-        <ListBox x:Name="EventListBox" Grid.Column="5" Margin="0,139,225,0" FontSize="14"  HorizontalAlignment="Right" Width="315" Grid.Row="1" Height="95" VerticalAlignment="Top" >
+        <ListBox x:Name="EventListBox" Grid.Column="5" Margin="110,139,0,0" FontSize="14" HorizontalAlignment="Left" Width="503" Grid.Row="1" Height="118" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding CommentTime}"  Margin="0 0 10 0" HorizontalAlignment="Left"/>
-                        <TextBlock Grid.Column="1" Text="{Binding Comment}"  Margin="0 0 10 0" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="0" Text="{Binding CommentTime}"  Margin="0 0 5 0" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Text="->" Margin="0 0 5 0" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Comment}"  Margin="0 0 35 0" HorizontalAlignment="Left"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Focusable" Value="False"/>
+                    <Setter Property="IsHitTestVisible" Value="False"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
         </ListBox>
 
-        <Button x:Name="ActiveAlarms" Content="Aktiivsed alarmid" Click="ActiveAlarms_Click" Grid.Column="5" Margin="0,10,467,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="94" />
-        <Button x:Name="WorkAlarms" Content="Töös alarmid" Click="WorkAlarms_Click" Grid.Column="5" Margin="0,11,357,0" HorizontalAlignment="Right" Width="93" Height="21" VerticalAlignment="Top"/>
-        <Button x:Name="ClosedAlarms" Content="Suletud alarmid" Click="ClosedAlarms_Click" Grid.Column="5" Margin="0,10,233,0" HorizontalAlignment="Right" Width="105" Height="20" VerticalAlignment="Top"/>
-        <Button x:Name="MyAlarms" Content="Minu alarmid" Click="MyAlarms_Click" Grid.Column="5" Margin="0,12,112,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="96"/>
-        <Button x:Name="AllAlarms" Content="Kõik" Click="AllAlarms_Click" Grid.Column="5"  Margin="0,12,24,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="64"/>
+        <Button x:Name="ActiveAlarms" Content="Aktiivsed alarmid" Click="ActiveAlarms_Click" Grid.Column="5" Margin="89,10,0,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" Width="94" />
+        <Button x:Name="WorkAlarms" Content="Töös alarmid" Click="WorkAlarms_Click" Grid.Column="5" Margin="200,11,0,0" HorizontalAlignment="Left" Width="93" Height="21" VerticalAlignment="Top"/>
+        <Button x:Name="ClosedAlarms" Content="Suletud alarmid" Click="ClosedAlarms_Click" Grid.Column="5" Margin="312,10,0,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" Width="105" Grid.ColumnSpan="2"/>
+        <Button x:Name="MyAlarms" Content="Minu alarmid" Click="MyAlarms_Click" Grid.Column="6" Margin="78,12,0,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" Width="96"/>
+        <Button x:Name="AllAlarms" Content="Kõik" Click="AllAlarms_Click" Grid.Column="6"  Margin="198,12,0,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" Width="64"/>
         <platformclient:ImageViewerWpfControl x:Name="_imageViewerWpfControl" BorderBrush="Black" BorderThickness="1" Margin="10,292,0,0" EnableMousePtzEmbeddedHandler="True"
                                                   MaintainImageAspectRatio="True" EnableVisibleTimestamp="True" 
                                                   ImageOrPaintInfoChanged="ImageOrPaintChangedHandler" Grid.ColumnSpan="3" Grid.RowSpan="2" HorizontalAlignment="Left" Width="610" Height="260" VerticalAlignment="Top" Grid.Column="1"/>
         <platformcontrols:VideoOSButtonPrimarySmall x:Name="buttonSelect" Click="Button_Select_Click" Margin="0,83,120,0" HorizontalAlignment="Right" Width="187" Height="29" VerticalAlignment="Top" Grid.Column="3" Grid.Row="1" Content="Vali Kaamera"/>
-        <StackPanel Grid.Column="3" Orientation="Vertical"  Margin="0,0,590,161" HorizontalAlignment="Right" Width="172" Grid.ColumnSpan="3" Height="78" VerticalAlignment="Bottom">
+        <StackPanel Grid.Column="3" Orientation="Vertical"  Margin="352,0,0,161" HorizontalAlignment="Left" Width="172" Grid.ColumnSpan="3" Height="78" VerticalAlignment="Bottom">
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxHeader" Margin="5" Checked="checkBoxHeader_Checked" Unchecked="CheckBoxHeader_Unchecked">Näita päist</platformcontrols:VideoOSCheckBoxSmall>
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxDigitalZoom" Margin="5" Checked="checkBoxDigitalZoom_Checked" Unchecked="CheckBoxDigitalZoom_Unchecked">Digitaalne suum</platformcontrols:VideoOSCheckBoxSmall>
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxAdaptiveStreaming" Margin="5" Checked="checkBoxAdaptiveStreaming_Checked" Unchecked="CheckBoxAdaptiveStreaming_Unchecked">Adaptiivne voogesitus</platformcontrols:VideoOSCheckBoxSmall>
         </StackPanel>
-        <GroupBox Header="Taasesituse juhtimine" Margin="322,0,545,450" Grid.Column="3" Grid.ColumnSpan="3" Height="148" VerticalAlignment="Bottom" Grid.RowSpan="2">
-            <StackPanel Width="200" Height="93" Margin="7,0,7,0">
+        <GroupBox Header="Taasesituse juhtimine" Margin="322,350,0,0" Grid.Column="3" Grid.ColumnSpan="3" Height="150" VerticalAlignment="Top" Grid.RowSpan="2" HorizontalAlignment="Left" Width="233">
+            <StackPanel Width="200" Height="105" Margin="10,0,11,0">
                 <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonMode1" Click="ButtonMode_Click">Praegune režiim: Otse esitlus</platformcontrols:VideoOSButtonPrimarySmall>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -149,11 +164,11 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
 
-                    <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonReverse" Click="ButtonReverse_Click">&lt;&lt;</platformcontrols:VideoOSButtonPrimarySmall>
-                    <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonStop" Grid.Column="1" Click="ButtonStop_Click">||</platformcontrols:VideoOSButtonPrimarySmall>
-                    <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonForward" Grid.Column="2" Click="ButtonForward_Click">&gt;&gt;</platformcontrols:VideoOSButtonPrimarySmall>
+                    <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonReverse" Click="ButtonReverse_Click" Margin="0,10,5,10">&lt;&lt;</platformcontrols:VideoOSButtonPrimarySmall>
+                    <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonStop" Grid.Column="1" Click="ButtonStop_Click" Margin="0,10,0,10">||</platformcontrols:VideoOSButtonPrimarySmall>
+                    <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonForward" Grid.Column="2" Click="ButtonForward_Click" Margin="5,10,0,10">&gt;&gt;</platformcontrols:VideoOSButtonPrimarySmall>
                 </Grid>
-                <platformcontrols:VideoOSTextBoxSmall x:Name="_textBoxTime1" Margin="1" Height="25" Width="176"/>
+                <platformcontrols:VideoOSTextBoxSmall x:Name="_textBoxTime1" Height="25" Width="176" Margin="0 0 0 0"/>
             </StackPanel>
         </GroupBox>
     </Grid>
