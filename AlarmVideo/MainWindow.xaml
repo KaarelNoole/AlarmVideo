@@ -154,9 +154,9 @@
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxDigitalZoom" Margin="5" Checked="checkBoxDigitalZoom_Checked" Unchecked="CheckBoxDigitalZoom_Unchecked">Digitaalne suum</platformcontrols:VideoOSCheckBoxSmall>
             <platformcontrols:VideoOSCheckBoxSmall x:Name="checkBoxAdaptiveStreaming" Margin="5" Checked="checkBoxAdaptiveStreaming_Checked" Unchecked="CheckBoxAdaptiveStreaming_Unchecked">Adaptiivne voogesitus</platformcontrols:VideoOSCheckBoxSmall>
         </StackPanel>
-        <GroupBox Header="Taasesituse juhtimine" Margin="322,350,0,0" Grid.Column="3" Grid.ColumnSpan="3" Height="150" VerticalAlignment="Top" Grid.RowSpan="2" HorizontalAlignment="Left" Width="233">
-            <StackPanel Width="200" Height="105" Margin="10,0,11,0">
-                <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonMode1" Click="ButtonMode_Click">Praegune režiim: Otse esitlus</platformcontrols:VideoOSButtonPrimarySmall>
+        <GroupBox Header="Taasesituse juhtimine" Margin="322,350,0,0" Grid.Column="3" Grid.ColumnSpan="3" Height="202" VerticalAlignment="Top" Grid.RowSpan="2" HorizontalAlignment="Left" Width="247">
+            <StackPanel Height="156" Margin="12,0,8,0">
+                <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonMode" Click="ButtonMode_Click">Praegune režiim: Otse esitlus</platformcontrols:VideoOSButtonPrimarySmall>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -168,8 +168,11 @@
                     <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonStop" Grid.Column="1" Click="ButtonStop_Click" Margin="0,10,0,10">||</platformcontrols:VideoOSButtonPrimarySmall>
                     <platformcontrols:VideoOSButtonPrimarySmall x:Name="_buttonForward" Grid.Column="2" Click="ButtonForward_Click" Margin="5,10,0,10">&gt;&gt;</platformcontrols:VideoOSButtonPrimarySmall>
                 </Grid>
-                <platformcontrols:VideoOSTextBoxSmall x:Name="_textBoxTime1" Height="25" Width="176" Margin="0 0 0 0"/>
+                <platformcontrols:VideoOSTextBoxSmall x:Name="_textBoxTime" Height="25" Width="176" Margin="0 0 0 0"/>
+                <TextBlock Text="Kiirus:" FontSize="12" Width="58" Height="21" />
+                <platformcontrols:VideoOSTextBoxSmall x:Name="_textBoxSpeed" Height="24" Width="129" HorizontalAlignment="Center" TextAlignment="Center" Text="0"/>
             </StackPanel>
+
         </GroupBox>
     </Grid>
 </platformcontrols:VideoOSWindow>

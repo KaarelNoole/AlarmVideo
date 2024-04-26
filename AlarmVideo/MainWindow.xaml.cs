@@ -39,6 +39,7 @@ namespace AlarmVideo
         private DatabaseWatcher _databaseWatcher;
         private bool _allowListBoxUpdate = true;
         private double _speed = 0.0;
+                private string _currentPlaybackMode = "";
 
 
 
@@ -89,6 +90,9 @@ namespace AlarmVideo
             _databaseWatcher.StartWatching();
 
             EnvironmentManager.Instance.RegisterReceiver(PlaybackTimeChangedHandler, new MessageIdFilter(MessageId.SmartClient.PlaybackCurrentTimeIndication));
+            _buttonReverse.IsEnabled = false;
+            _buttonForward.IsEnabled = false;
+            _buttonStop.IsEnabled = false;
         }
 
         private void OnNewAlarmAdded()
@@ -223,8 +227,7 @@ namespace AlarmVideo
         //alarmide valimine
         private  void  AlarmsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _imageViewerWpfControl.Disconnect();
-            _imageViewerWpfControl.Close();
+
 
             if (alarmsListBox.SelectedItem is Alarm selectedAlarm)
             {
@@ -910,49 +913,60 @@ namespace AlarmVideo
             if (EnvironmentManager.Instance.Mode == Mode.ClientLive)
             {
                 EnvironmentManager.Instance.Mode = Mode.ClientPlayback;
-                _buttonMode1.Content = "Praegune režiim: Taasesitus";
+                _buttonMode.Content = "Praegune režiim: Taasesitus";
+
             }
             else
             {
                 EnvironmentManager.Instance.Mode = Mode.ClientLive;
-                _buttonMode1.Content = "Praegune režiim: Otse esitlus";
+                _buttonMode.Content = "Praegune režiim: Otse esitlus";
             }
             _buttonReverse.IsEnabled = EnvironmentManager.Instance.Mode == Mode.ClientPlayback;
             _buttonForward.IsEnabled = EnvironmentManager.Instance.Mode == Mode.ClientPlayback;
             _buttonStop.IsEnabled = EnvironmentManager.Instance.Mode == Mode.ClientPlayback;
+
         }
 
         private void ButtonReverse_Click(object sender, RoutedEventArgs e)
         {
-            if (_speed == 0.0)
+
+            if (_speed == 0.0 || _currentPlaybackMode != PlaybackData.PlayReverse)
                 _speed = 1.0;
-            else
+            else if (_speed < 512)
                 _speed *= 2;
             EnvironmentManager.Instance.SendMessage(new Message(
                 MessageId.SmartClient.PlaybackCommand,
                 new PlaybackCommandData() { Command = PlaybackData.PlayReverse, Speed = _speed }));
+            _currentPlaybackMode = PlaybackData.PlayReverse;
+
+            _textBoxSpeed.Text = _speed.ToString();
+
         }
 
         private void ButtonStop_Click(object sender, RoutedEventArgs e)
         {
             EnvironmentManager.Instance.SendMessage(new Message(
-            MessageId.SmartClient.PlaybackCommand,
-            new PlaybackCommandData() { Command = PlaybackData.PlayStop }));
+                SmartClient.PlaybackCommand,
+                new PlaybackCommandData() { Command = PlaybackData.PlayStop }));
             EnvironmentManager.Instance.Mode = Mode.ClientPlayback;
-            _buttonMode1.Content = "Praegune režiim: Taasesitus";
+            _buttonMode.Content = "Praegune režiim: Taasesitus";
             _speed = 0.0;
+            _textBoxSpeed.Text = _speed.ToString();
         }
 
         private void ButtonForward_Click(object sender, RoutedEventArgs e)
         {
-            if (_speed == 0.0)
+            if (_speed == 0.0 || _currentPlaybackMode != PlaybackData.PlayForward)
                 _speed = 1.0;
-            else
+            else if ( _speed < 512)
                 _speed *= 2;
             EnvironmentManager.Instance.SendMessage(new Message(
                 MessageId.SmartClient.PlaybackCommand,
                 new PlaybackCommandData() { Command = PlaybackData.PlayForward, Speed = _speed }));
+            _currentPlaybackMode = PlaybackData.PlayForward;
+            _textBoxSpeed.Text = _speed.ToString();
         }
+
 
         private object PlaybackTimeChangedHandler(Message message, FQID dest, FQID sender)
         {
@@ -961,7 +975,7 @@ namespace AlarmVideo
                 DateTime time = (DateTime)message.Data;
                 
                 if (sender == null)
-                    _textBoxTime1.Text = time.ToShortDateString() + "  " + time.ToLongTimeString();
+                    _textBoxTime.Text = time.ToShortDateString() + "  " + time.ToLongTimeString();
             });
             return null;
         }
