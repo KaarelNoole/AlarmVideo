@@ -809,7 +809,7 @@ namespace AlarmVideo
             }
         }
 
-        //Kaamera list
+        //Kaamera lisamine vaatesse
         private void SetupImageViewer()
         {
             if (_selectItem != null)
@@ -908,6 +908,7 @@ namespace AlarmVideo
 
         //}
 
+        //tagasi vaate režiimi nuppu mood
         private void ButtonMode_Click(object sender, RoutedEventArgs e)
         {
             if (EnvironmentManager.Instance.Mode == Mode.ClientLive)
@@ -927,6 +928,7 @@ namespace AlarmVideo
 
         }
 
+        //tagasi vaade
         private void ButtonReverse_Click(object sender, RoutedEventArgs e)
         {
 
@@ -943,6 +945,7 @@ namespace AlarmVideo
 
         }
 
+        //stopp nupp tagasi vaadele
         private void ButtonStop_Click(object sender, RoutedEventArgs e)
         {
             EnvironmentManager.Instance.SendMessage(new Message(
@@ -954,6 +957,7 @@ namespace AlarmVideo
             _textBoxSpeed.Text = _speed.ToString();
         }
 
+        //edasi nupp vaadele
         private void ButtonForward_Click(object sender, RoutedEventArgs e)
         {
             if (_speed == 0.0 || _currentPlaybackMode != PlaybackData.PlayForward)
@@ -967,7 +971,7 @@ namespace AlarmVideo
             _textBoxSpeed.Text = _speed.ToString();
         }
 
-
+        //kellaaja näitamine 
         private object PlaybackTimeChangedHandler(Message message, FQID dest, FQID sender)
         {
             Dispatcher.Invoke(() =>
