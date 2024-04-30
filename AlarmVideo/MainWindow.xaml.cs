@@ -93,6 +93,7 @@ namespace AlarmVideo
             _buttonReverse.IsEnabled = false;
             _buttonForward.IsEnabled = false;
             _buttonStop.IsEnabled = false;
+            _buttonMode.IsEnabled = false;
         }
 
         private void OnNewAlarmAdded()
@@ -823,6 +824,7 @@ namespace AlarmVideo
                 _imageViewerWpfControl.Connect();
                 _imageViewerWpfControl.Selected = true;
                 _imageViewerWpfControl.EnableDigitalZoom = checkBoxDigitalZoom.IsChecked.Value;
+                _buttonMode.IsEnabled = true;
             }
             else
             {
@@ -915,10 +917,17 @@ namespace AlarmVideo
             {
                 EnvironmentManager.Instance.Mode = Mode.ClientPlayback;
                 _buttonMode.Content = "Praegune režiim: Taasesitus";
+                _currentPlaybackMode = "";
 
             }
             else
             {
+                EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+                    MessageId.SmartClient.PlaybackCommand,
+                    new PlaybackCommandData { Command = PlaybackData.PlayStop }));
+                _speed = 0.0;
+                _currentPlaybackMode = "";
+
                 EnvironmentManager.Instance.Mode = Mode.ClientLive;
                 _buttonMode.Content = "Praegune režiim: Otse esitlus";
             }
@@ -928,10 +937,9 @@ namespace AlarmVideo
 
         }
 
-        //tagasi vaade
+        //tagasi vaade nupp
         private void ButtonReverse_Click(object sender, RoutedEventArgs e)
         {
-
             if (_speed == 0.0 || _currentPlaybackMode != PlaybackData.PlayReverse)
                 _speed = 1.0;
             else if (_speed < 512)
@@ -942,7 +950,6 @@ namespace AlarmVideo
             _currentPlaybackMode = PlaybackData.PlayReverse;
 
             _textBoxSpeed.Text = _speed.ToString();
-
         }
 
         //stopp nupp tagasi vaadele
@@ -957,7 +964,7 @@ namespace AlarmVideo
             _textBoxSpeed.Text = _speed.ToString();
         }
 
-        //edasi nupp vaadele
+        //edasi vaade nupp
         private void ButtonForward_Click(object sender, RoutedEventArgs e)
         {
             if (_speed == 0.0 || _currentPlaybackMode != PlaybackData.PlayForward)
@@ -971,7 +978,7 @@ namespace AlarmVideo
             _textBoxSpeed.Text = _speed.ToString();
         }
 
-        //kellaaja näitamine 
+        //kellaaja ja kuupäeva näitamine 
         private object PlaybackTimeChangedHandler(Message message, FQID dest, FQID sender)
         {
             Dispatcher.Invoke(() =>
