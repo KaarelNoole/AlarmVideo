@@ -309,7 +309,7 @@ namespace AlarmVideo
                         
                         SaveCommentToDatabase(enteredText, selectedAlarmId);
 
-                        EventItem newItem = new EventItem { Comment = enteredText };
+                        EventItem newItem = new EventItem { Comment = enteredText, CommentTime = DateTime.Now };
 
                         eventItemList.Add(newItem);
 
