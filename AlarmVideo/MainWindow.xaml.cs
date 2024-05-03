@@ -193,13 +193,18 @@ namespace AlarmVideo
                                     if (!reader.IsDBNull(0))
                                     {
                                         DateTime eventTime = reader.GetDateTime(0);
+                                        string formattedEventTime = eventTime.ToString("dd.MM.yyyy HH:mm:ss");
+                                        Console.WriteLine(eventTime.ToString("dd.MM.yyyy HH:mm:ss"));
+
+                                        var parsedDate = DateTime.Parse(formattedEventTime);
+
                                         string source = reader.GetString(1);
                                         string eventType = reader.GetString(2);
                                         int Id = reader.GetInt32(3);
 
                                         alarmsListBox.Items.Add(new Alarm
                                         {
-                                            EventTime = eventTime,
+                                            EventTime = parsedDate,
                                             Source = source,
                                             Event = eventType,
                                             Id = Id,
@@ -372,7 +377,7 @@ namespace AlarmVideo
                             {
                                 alarmsListBox.Items.Remove(_selectedAlarm);
                                 activeAlarms.Add(_selectedAlarm);
-                                eventItemList.Add(new EventItem { Comment = "Alarm aktsepteeritud", CommentTime = DateTime.Now});
+                                eventItemList.Add(new EventItem { Comment = "Alarm aktsepteeritud" , CommentTime = DateTime.Now});
                                 EventListBox.ItemsSource = null;
                                 EventListBox.ItemsSource = eventItemList;
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
@@ -527,7 +532,7 @@ namespace AlarmVideo
                                 alarmsListBox.Items.Remove(_selectedAlarm);
                                 closedAlarms.Add(_selectedAlarm);
                                 // await DelayToDatabaseAsync();
-                                eventItemList.Add(new EventItem { Comment = "Alarm lõpetatud", CommentTime = DateTime.Now });
+                                eventItemList.Add(new EventItem { Comment = "Alarm lõpetatud", CommentTime = DateTime.Now});
                                 EventListBox.ItemsSource = null;
                                 EventListBox.ItemsSource = eventItemList;
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");

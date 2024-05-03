@@ -103,7 +103,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="{Binding EventTime, StringFormat={}{0:dd.MM.yyyy HH:mm:ss}}" FontSize="12" Margin="0 0 10 0" HorizontalAlignment="Left" />
+                        <TextBlock Text="{Binding EventTime , StringFormat={}{0:MM.dd.yyyy HH:mm:ss}}" FontSize="12" Margin="0 0 10 0" HorizontalAlignment="Left" />
                         <TextBlock Text="{Binding Source}" FontWeight="Bold" Margin="0 0 10 0" HorizontalAlignment="Center" Grid.Column="1"/>
                         <TextBlock Text="{Binding Event}" FontWeight="Bold" Margin="0 0 10 0" HorizontalAlignment="Right" Grid.Column="2"/>
                     </Grid>
