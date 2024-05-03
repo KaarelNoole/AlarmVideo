@@ -20,6 +20,8 @@ namespace AlarmVideo
         }
 
         private DateTime _eventTime;
+        
+
         public DateTime EventTime
         {
             get { return _eventTime; }
@@ -61,6 +63,7 @@ namespace AlarmVideo
             }
         }
 
+        public string EventTimeFormatted { get; set; }
         public FQID FQID { get; internal set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -68,5 +71,6 @@ namespace AlarmVideo
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
     }
 }

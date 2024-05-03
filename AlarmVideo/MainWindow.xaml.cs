@@ -6,16 +6,12 @@ using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Runtime.InteropServices.ComTypes;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using VideoOS.Platform;
-using VideoOS.Platform.Data;
 using VideoOS.Platform.Messaging;
 using VideoOS.Platform.Proxy.AlarmClient;
 using VideoOS.Platform.UI;
@@ -39,7 +35,7 @@ namespace AlarmVideo
         private DatabaseWatcher _databaseWatcher;
         private bool _allowListBoxUpdate = true;
         private double _speed = 0.0;
-                private string _currentPlaybackMode = "";
+        private string _currentPlaybackMode = "";
 
 
 
@@ -108,8 +104,8 @@ namespace AlarmVideo
 
         private void LoadNewDataFromDatabase()
         {
-            
-            if (!_allowListBoxUpdate) return; 
+
+            if (!_allowListBoxUpdate) return;
 
             try
             {
@@ -124,6 +120,7 @@ namespace AlarmVideo
                     {
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
+
                             while (reader.Read())
                             {
                                 Alarm newAlarm = new Alarm
@@ -186,6 +183,7 @@ namespace AlarmVideo
                     {
                         connection.Open();
                         string query = "SELECT EventTime, Source, Event, Id FROM Alarm WHERE Status IS NULL";
+
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
                             using (SqlDataReader reader = command.ExecuteReader())
@@ -219,18 +217,15 @@ namespace AlarmVideo
             });
         }
 
-
         private void InitializeListBox()
         {
             alarmsListBox.SelectionChanged += AlarmsListBox_SelectionChanged;
         }
 
         //alarmide valimine
-        private  void  AlarmsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void AlarmsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
-
-            if (alarmsListBox.SelectedItem is Alarm selectedAlarm)
+            if (alarmsListBox.SelectedItem is Alarm)
             {
                 _selectItem = alarmsListBox.SelectedItem as Item;
                 _selectedAlarm = alarmsListBox.SelectedItem as Alarm;
@@ -264,7 +259,7 @@ namespace AlarmVideo
                             }
                         }
                     }
-                    
+
                     EventListBox.ItemsSource = null;
                     EventListBox.ItemsSource = eventItemList;
                 }
@@ -290,7 +285,7 @@ namespace AlarmVideo
                     MessageBox.Show($"Viga kommentaaride laadimisel: {ex.Message}");
                 }
             }
-            
+
         }
         //Kommentaaride lisamise nupp 
         private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -300,13 +295,13 @@ namespace AlarmVideo
                 string enteredText = alarmDetailsTextBox.Text;
                 if (!string.IsNullOrWhiteSpace(enteredText))
                 {
-                    
+
                     if (alarmsListBox.SelectedItem is Alarm selectedAlarm)
                     {
-                        
+
                         int selectedAlarmId = selectedAlarm.Id;
 
-                        
+
                         SaveCommentToDatabase(enteredText, selectedAlarmId);
 
                         EventItem newItem = new EventItem { Comment = enteredText, CommentTime = DateTime.Now };
@@ -377,7 +372,7 @@ namespace AlarmVideo
                             {
                                 alarmsListBox.Items.Remove(_selectedAlarm);
                                 activeAlarms.Add(_selectedAlarm);
-                                eventItemList.Add(new EventItem { Comment = "Alarm aktsepteeritud" });
+                                eventItemList.Add(new EventItem { Comment = "Alarm aktsepteeritud", CommentTime = DateTime.Now});
                                 EventListBox.ItemsSource = null;
                                 EventListBox.ItemsSource = eventItemList;
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
@@ -417,7 +412,7 @@ namespace AlarmVideo
                 var newEvent = new Event
                 {
                     Time = DateTime.Now,
-                    Comment = item.Comment, 
+                    Comment = item.Comment,
                     CommentTime = DateTime.Now,
                     AlarmEnd = DateTime.Now.AddMinutes(10),
                     EventEnd = DateTime.Now.AddMinutes(20),
@@ -444,7 +439,7 @@ namespace AlarmVideo
 
                     SqlCommand command = new SqlCommand(insertQuery, connection);
 
-                    
+
                     command.Parameters.AddWithValue("@Time", ev.Time);
                     command.Parameters.AddWithValue("@Comment", ev.Comment);
                     command.Parameters.AddWithValue("@CommentTime", ev.CommentTime);
@@ -452,7 +447,7 @@ namespace AlarmVideo
                     command.Parameters.AddWithValue("@EventEnd", ev.EventEnd);
                     command.Parameters.AddWithValue("@Event_Recovery_time", ev.Event_Recovery_time);
 
-                    
+
                     command.ExecuteNonQuery();
                 }
             }
@@ -472,7 +467,7 @@ namespace AlarmVideo
                         string formattedEventTime = _selectedAlarm.EventTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
                         string query = $"DELETE FROM Alarm WHERE EventTime = '{formattedEventTime}' AND Source = '{_selectedAlarm.Source}' AND Event = '{_selectedAlarm.Event}'";
-                        
+
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
                             int rowsAffected = command.ExecuteNonQuery();
@@ -500,14 +495,14 @@ namespace AlarmVideo
         }
         private void AlarmRequestButton_Click(object sender, RoutedEventArgs e)
         {
-            
+
         }
         private void SendVideoButton_Click(object sender, RoutedEventArgs e)
         {
-            
+
         }
         //Alarmi lõpetus nupp
-        private  void AlarmClosedButton_Click(object sender, RoutedEventArgs e)
+        private void AlarmClosedButton_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedAlarm != null)
             {
@@ -532,7 +527,7 @@ namespace AlarmVideo
                                 alarmsListBox.Items.Remove(_selectedAlarm);
                                 closedAlarms.Add(_selectedAlarm);
                                 // await DelayToDatabaseAsync();
-                                eventItemList.Add(new EventItem { Comment = "Alarm lõpetatud" });
+                                eventItemList.Add(new EventItem { Comment = "Alarm lõpetatud", CommentTime = DateTime.Now });
                                 EventListBox.ItemsSource = null;
                                 EventListBox.ItemsSource = eventItemList;
                                 MessageBox.Show("Alarmi oleku värskendamine õnnestus.");
@@ -563,7 +558,7 @@ namespace AlarmVideo
             }
         }
         //Aktsepteeritud alarmi List nupp
-        private  void ActiveAlarms_Click(object sender, RoutedEventArgs e)
+        private void ActiveAlarms_Click(object sender, RoutedEventArgs e)
         {
             _allowListBoxUpdate = false;
 
@@ -580,7 +575,7 @@ namespace AlarmVideo
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                   
+
                     string query = "SELECT DISTINCT a.Id, a.EventTime, a.Source, a.Event " +
                                    "FROM Alarm a " +
                                    "LEFT JOIN Comments c ON a.Id = c.AlarmId " +
@@ -615,7 +610,7 @@ namespace AlarmVideo
                             {
                                 LoadClientAlarmsToListBox();
                             }
-                            
+
                         }
                     }
                 }
@@ -673,7 +668,7 @@ namespace AlarmVideo
                                     string source = reader.GetString(2);
                                     string eventType = reader.GetString(3);
 
-                                    
+
                                     alarmsListBox.Items.Add(new Alarm
                                     {
                                         Id = id,
@@ -725,7 +720,7 @@ namespace AlarmVideo
                 SelectionMode = SelectionModeOptions.AutoCloseOnSelect,
                 Items = Configuration.Instance.GetItems()
             };
-            
+
             if (itemPicker.ShowDialog().Value)
             {
                 _selectItem = itemPicker.SelectedItems.First();
@@ -802,7 +797,7 @@ namespace AlarmVideo
                 mapControl.ZoomLevel = 16;
 
 
-                GetLongitudeAndLatitude(item, videoOSTreeView); 
+                GetLongitudeAndLatitude(item, videoOSTreeView);
             }
             else
             {
@@ -816,7 +811,7 @@ namespace AlarmVideo
             if (_selectItem != null)
             {
                 //_selectItem.FQID =  { Server: XPCORS: desktop - e6fogtd  Id: 071fad0f - 2ceb - 433d - ac93 - 0c0f2741d8cb, ObjectId: 30ae8ba4 - 9309 - 4dc0 - 9416 - 71d2d469053f, Type: 5135ba21 - f1dc - 4321 - 806a - 6ce2017343c0};
-                _imageViewerWpfControl.CameraFQID = _selectItem.FQID;                                                                                                                                                                                                                                                                                                                                                                               
+                _imageViewerWpfControl.CameraFQID = _selectItem.FQID;
                 _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
                 _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
                 _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
@@ -852,7 +847,7 @@ namespace AlarmVideo
             if (_selectItem != null)
                 EnvironmentManager.Instance.PostMessage(
                     new Message(MessageId.Control.StopRecordingCommand), _selectItem.FQID);
-        }   
+        }
         private void checkBoxHeader_Checked(object sender, RoutedEventArgs e)
         {
             UpdateCheckBoxHeader();
@@ -922,7 +917,7 @@ namespace AlarmVideo
             }
             else
             {
-                EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+                EnvironmentManager.Instance.SendMessage(new Message(
                     MessageId.SmartClient.PlaybackCommand,
                     new PlaybackCommandData { Command = PlaybackData.PlayStop }));
                 _speed = 0.0;
@@ -969,7 +964,7 @@ namespace AlarmVideo
         {
             if (_speed == 0.0 || _currentPlaybackMode != PlaybackData.PlayForward)
                 _speed = 1.0;
-            else if ( _speed < 512)
+            else if (_speed < 512)
                 _speed *= 2;
             EnvironmentManager.Instance.SendMessage(new Message(
                 MessageId.SmartClient.PlaybackCommand,
@@ -983,10 +978,11 @@ namespace AlarmVideo
         {
             Dispatcher.Invoke(() =>
             {
-                DateTime time = (DateTime)message.Data;
-                
+                DateTime timeUtc = (DateTime)message.Data;
+                DateTime timeLocal = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, TimeZoneInfo.Local);
+
                 if (sender == null)
-                    _textBoxTime.Text = time.ToShortDateString() + "  " + time.ToLongTimeString();
+                    _textBoxTime.Text = timeLocal.ToShortDateString() + "  " + timeLocal.ToLongTimeString();
             });
             return null;
         }
