@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using VideoOS.Platform;
 
@@ -20,8 +19,6 @@ namespace AlarmVideo
         }
 
         private DateTime _eventTime;
-        
-
         public DateTime EventTime
         {
             get { return _eventTime; }

@@ -531,7 +531,6 @@ namespace AlarmVideo
                             {
                                 alarmsListBox.Items.Remove(_selectedAlarm);
                                 closedAlarms.Add(_selectedAlarm);
-                                // await DelayToDatabaseAsync();
                                 eventItemList.Add(new EventItem { Comment = "Alarm lõpetatud", CommentTime = DateTime.Now});
                                 EventListBox.ItemsSource = null;
                                 EventListBox.ItemsSource = eventItemList;
@@ -815,7 +814,6 @@ namespace AlarmVideo
         {
             if (_selectItem != null)
             {
-                //_selectItem.FQID =  { Server: XPCORS: desktop - e6fogtd  Id: 071fad0f - 2ceb - 433d - ac93 - 0c0f2741d8cb, ObjectId: 30ae8ba4 - 9309 - 4dc0 - 9416 - 71d2d469053f, Type: 5135ba21 - f1dc - 4321 - 806a - 6ce2017343c0};
                 _imageViewerWpfControl.CameraFQID = _selectItem.FQID;
                 _imageViewerWpfControl.EnableVisibleHeader = checkBoxHeader.IsChecked.Value;
                 _imageViewerWpfControl.EnableVisibleLiveIndicator = EnvironmentManager.Instance.Mode == Mode.ClientLive;
@@ -904,11 +902,6 @@ namespace AlarmVideo
         {
 
         }
-        //private async Task DelayToDatabaseAsync()
-        //{
-        //    await Task.Delay(2000);
-
-        //}
 
         //tagasi vaate režiimi nuppu mood
         private void ButtonMode_Click(object sender, RoutedEventArgs e)
@@ -945,10 +938,26 @@ namespace AlarmVideo
             else if (_speed < 512)
                 _speed *= 2;
             EnvironmentManager.Instance.SendMessage(new Message(
-                MessageId.SmartClient.PlaybackCommand,
+                SmartClient.PlaybackCommand,
                 new PlaybackCommandData() { Command = PlaybackData.PlayReverse, Speed = _speed }));
             _currentPlaybackMode = PlaybackData.PlayReverse;
 
+            _textBoxSpeed.Text = _speed.ToString();
+        }
+
+
+
+        //edasi vaade nupp
+        private void ButtonForward_Click(object sender, RoutedEventArgs e)
+        {
+            if (_speed == 0.0 || _currentPlaybackMode != PlaybackData.PlayForward)
+                _speed = 1.0;
+            else if (_speed < 512)
+                _speed *= 2;
+            EnvironmentManager.Instance.SendMessage(new Message(
+                SmartClient.PlaybackCommand,
+                new PlaybackCommandData() { Command = PlaybackData.PlayForward, Speed = _speed }));
+            _currentPlaybackMode = PlaybackData.PlayForward;
             _textBoxSpeed.Text = _speed.ToString();
         }
 
@@ -962,20 +971,7 @@ namespace AlarmVideo
             _buttonMode.Content = "Praegune režiim: Taasesitus";
             _speed = 0.0;
             _textBoxSpeed.Text = _speed.ToString();
-        }
 
-        //edasi vaade nupp
-        private void ButtonForward_Click(object sender, RoutedEventArgs e)
-        {
-            if (_speed == 0.0 || _currentPlaybackMode != PlaybackData.PlayForward)
-                _speed = 1.0;
-            else if (_speed < 512)
-                _speed *= 2;
-            EnvironmentManager.Instance.SendMessage(new Message(
-                MessageId.SmartClient.PlaybackCommand,
-                new PlaybackCommandData() { Command = PlaybackData.PlayForward, Speed = _speed }));
-            _currentPlaybackMode = PlaybackData.PlayForward;
-            _textBoxSpeed.Text = _speed.ToString();
         }
 
         //kellaaja ja kuupäeva näitamine 
