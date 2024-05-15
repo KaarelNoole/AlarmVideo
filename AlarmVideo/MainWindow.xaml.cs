@@ -36,10 +36,6 @@ namespace AlarmVideo
         private bool _allowListBoxUpdate = true;
         private double _speed = 0.0;
         private string _currentPlaybackMode = "";
-
-
-
-
         private ObservableCollection<Alarm> _alarms;
         public ObservableCollection<Alarm> Alarms
         {
@@ -194,7 +190,6 @@ namespace AlarmVideo
                                     {
                                         DateTime eventTime = reader.GetDateTime(0);
                                         string formattedEventTime = eventTime.ToString("dd.MM.yyyy HH:mm:ss");
-                                        Console.WriteLine(eventTime.ToString("dd.MM.yyyy HH:mm:ss"));
 
                                         var parsedDate = DateTime.Parse(formattedEventTime);
 
@@ -352,7 +347,7 @@ namespace AlarmVideo
                 }
             }
         }
-        //Aktseteerimise nupp
+        //Aktsepteerimise nupp
         private void acceptAlarmsButton_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedAlarm != null)
@@ -629,13 +624,12 @@ namespace AlarmVideo
         private void WorkAlarms_Click(object sender, RoutedEventArgs e)
         {
             _allowListBoxUpdate = false;
-            alarmsListBox.ItemsSource = null;
-            alarmsListBox.Items.Clear();
 
-            if (_allowListBoxUpdate)
+            if (alarmsListBox.ItemsSource != null)
             {
-                LoadClientAlarmsToListBox();
+                alarmsListBox.ItemsSource = null;
             }
+            alarmsListBox.Items.Clear();
         }
 
         //Lõpetatud alarmi List nupp
