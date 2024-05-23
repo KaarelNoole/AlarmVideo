@@ -81,7 +81,7 @@ namespace AlarmVideo
             _databaseWatcher.NewAlarmAdded += NewAlarmAddedHandler;
             _databaseWatcher.StartWatching();
 
-            EnvironmentManager.Instance.RegisterReceiver(PlaybackTimeChangedHandler, new MessageIdFilter(MessageId.SmartClient.PlaybackCurrentTimeIndication));
+            EnvironmentManager.Instance.RegisterReceiver(PlaybackTimeChangedHandler, new MessageIdFilter(SmartClient.PlaybackCurrentTimeIndication));
             _buttonReverse.IsEnabled = false;
             _buttonForward.IsEnabled = false;
             _buttonStop.IsEnabled = false;
@@ -189,9 +189,9 @@ namespace AlarmVideo
                                     if (!reader.IsDBNull(0))
                                     {
                                         DateTime eventTime = reader.GetDateTime(0);
-                                        string formattedEventTime = eventTime.ToString("dd.MM.yyyy HH:mm:ss");
+                                        //string formattedEventTime = eventTime.ToString("dd.MM.yyyy HH:mm:ss");
 
-                                        var parsedDate = DateTime.Parse(formattedEventTime);
+                                        //var parsedDate = DateTime.Parse(formattedEventTime);
 
                                         string source = reader.GetString(1);
                                         string eventType = reader.GetString(2);
@@ -199,7 +199,7 @@ namespace AlarmVideo
 
                                         alarmsListBox.Items.Add(new Alarm
                                         {
-                                            EventTime = parsedDate,
+                                            EventTime = eventTime,
                                             Source = source,
                                             Event = eventType,
                                             Id = Id,
@@ -493,10 +493,14 @@ namespace AlarmVideo
                 MessageBox.Show("Palun vali alarm ,et kustutada");
             }
         }
+
+        //Teeb Rakendusest pildi. minu arust
         private void AlarmRequestButton_Click(object sender, RoutedEventArgs e)
         {
 
         }
+
+        // Teeb uue vaate lahti kuhu on võimalik lisada mitut kaamera vaated
         private void SendVideoButton_Click(object sender, RoutedEventArgs e)
         {
 
@@ -621,6 +625,7 @@ namespace AlarmVideo
 
         }
 
+        //Alarmid millel on sündmus lisatud. POOLELI
         private void WorkAlarms_Click(object sender, RoutedEventArgs e)
         {
             _allowListBoxUpdate = false;
@@ -690,6 +695,8 @@ namespace AlarmVideo
                 EnvironmentManager.Instance.ExceptionDialog("ClosedAlarms_Click", ex);
             }
         }
+
+        //operaatorile kuuluvad alarmid. POOLELI
         private void MyAlarms_Click(object sender, RoutedEventArgs e)
         {
             _allowListBoxUpdate = false;
@@ -732,6 +739,7 @@ namespace AlarmVideo
             }
         }
 
+        //Võtab milestone management clientis kaamera koordinaate
         private void GetLongitudeAndLatitude(Item item, VideoOSTreeViewItem tn)
         {
             VideoOSTreeViewItem fields = new VideoOSTreeViewItem()
@@ -882,6 +890,8 @@ namespace AlarmVideo
         {
             _imageViewerWpfControl.AdaptiveStreaming = checkBoxAdaptiveStreaming.IsChecked.Value;
         }
+
+        //Kommentaariumi textbox
         private void alarmDetailsTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             string enteredText = alarmDetailsTextBox.Text;
@@ -897,7 +907,7 @@ namespace AlarmVideo
 
         }
 
-        //tagasi vaate režiimi nuppu mood
+        //taasesituse juhtmisele režiimi nuppu mood
         private void ButtonMode_Click(object sender, RoutedEventArgs e)
         {
             if (EnvironmentManager.Instance.Mode == Mode.ClientLive)
@@ -910,7 +920,7 @@ namespace AlarmVideo
             else
             {
                 EnvironmentManager.Instance.SendMessage(new Message(
-                    MessageId.SmartClient.PlaybackCommand,
+                    SmartClient.PlaybackCommand,
                     new PlaybackCommandData { Command = PlaybackData.PlayStop }));
                 _speed = 0.0;
                 _currentPlaybackMode = "";
@@ -962,17 +972,18 @@ namespace AlarmVideo
                 SmartClient.PlaybackCommand,
                 new PlaybackCommandData() { Command = PlaybackData.PlayStop }));
             EnvironmentManager.Instance.Mode = Mode.ClientPlayback;
-            _buttonMode.Content = "Praegune režiim: Taasesitus";
+            _buttonMode.Content = "Praegune režiim: Taasesitlus";
             _speed = 0.0;
             _textBoxSpeed.Text = _speed.ToString();
 
         }
 
-        //kellaaja ja kuupäeva näitamine 
+        //kellaaja ja kuupäeva näitamine taasesituse juhtmisele
         private object PlaybackTimeChangedHandler(Message message, FQID dest, FQID sender)
         {
             Dispatcher.Invoke(() =>
             {
+                //konverteerib UTC lokaalsele ajale
                 DateTime timeUtc = (DateTime)message.Data;
                 DateTime timeLocal = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, TimeZoneInfo.Local);
 
